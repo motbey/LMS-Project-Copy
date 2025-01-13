@@ -4,17 +4,18 @@ __pycache__/
 *.pyo
 
 # Virtual Environment
-# env/
+env/
 
 # Database
-# *.db
-# instance/
+*.db
+instance/
 
 # Compiled files
 *.dist-info/
 
 # Migrations
-# migrations/
+migrations/
 
 # Logs
 *.log
+
