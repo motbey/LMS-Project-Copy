@@ -3,19 +3,10 @@ __pycache__/
 *.pyc
 *.pyo
 
-# Virtual Environment
+# Virtual Environment (Keep if you want to exclude it)
 env/
-
-# Database
-*.db
-instance/
-
-# Compiled files
-*.dist-info/
-
-# Migrations
-migrations/
 
 # Logs
 *.log
+
 
