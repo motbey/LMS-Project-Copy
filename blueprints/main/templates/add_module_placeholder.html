@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - Add Module</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <nav class="dashboard-header">
+      <h2>Add Module</h2>
+      <div class="header-buttons">
+        <a class="btn" href="{{ url_for('main.modules') }}">Modules</a>
+        <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
+      </div>
+    </nav>
+
+    <!-- Main Section -->
+    <section class="dashboard-section">
+      <h3>Upload a SCORM File</h3>
+
+      <!-- Upload Form -->
+      <form
+        method="POST"
+        enctype="multipart/form-data"
+        action="{{ url_for('main.add_module_placeholder') }}"
+        style="margin-top: 20px"
+      >
+        <label for="scorm_file">Choose a SCORM File:</label>
+        <input type="file" id="scorm_file" name="scorm_file" required />
+
+        <button type="submit" class="btn btn-success" style="margin-top: 10px">
+          Upload SCORM File
+        </button>
+      </form>
+    </section>
+
+    <!-- Footer -->
+    <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+  </body>
+</html>

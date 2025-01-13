@@ -1,0 +1,125 @@
+<?xml version="1.0" ?>
+<manifest identifier="fCPcDnjsaPNQQSiyn6bPFzD2HI_1RHmjTcmF2dFa" version="1"
+  xmlns="http://www.imsproject.org/xsd/imscp_rootv1p1p2"
+  xmlns:adlcp="http://www.adlnet.org/xsd/adlcp_rootv1p2"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.imsproject.org/xsd/imscp_rootv1p1p2 imscp_rootv1p1p2.xsd
+                      http://www.adlnet.org/xsd/adlcp_rootv1p2 adlcp_rootv1p2.xsd">
+  <metadata>
+    <schema>ADL SCORM</schema>
+    <schemaversion>1.2</schemaversion>
+    <adlcp:location>metadata.xml</adlcp:location>
+  </metadata>
+  <organizations default="articulate_rise">
+      <organization identifier="articulate_rise">
+      <title>Fatigue Management</title>
+      <item identifier="i1" identifierref="r1" isvisible="true">
+        <title>Fatigue Management</title>
+        <adlcp:datafromlms>eyJjcHYiOiJUY21GMmRGYSIsInJsZCI6ZmFsc2V9</adlcp:datafromlms>
+      </item>
+    </organization>
+  </organizations>
+  <resources>
+    <resource identifier="r1" type="webcontent" adlcp:scormtype="sco" href="scormdriver/indexAPI.html">
+      <!-- SCORMDRIVER STUFF -->
+      <file href="scormdriver/indexAPI.html" />
+      <file href="scormdriver/preloadIntegrity.js" />
+      <file href="scormdriver/driverOptions.js" />
+      <file href="scormdriver/AICCComm.html" />
+      <file href="scormdriver/auto-scripts/AutoBookmark.js" />
+      <file href="scormdriver/auto-scripts/AutoCompleteSCO.js" />
+      <file href="scormdriver/auto-scripts/CourseExit.js" />
+      <file href="scormdriver/blank.html" />
+      <file href="scormdriver/goodbye.html" />
+      <file href="scormdriver/scormdriver.js" />
+      <file href="scormdriver/browsersniff.js" />
+
+      <!-- RUNTIME COMMON STUFF -->
+      <file href="scormcontent/index.html" />
+
+      
+        <file href="scormcontent/lib/fonts/icomoon.ttf"/>
+        <file href="scormcontent/lib/fonts/icomoon.woff"/>
+
+        <file href="scormcontent/lib/icomoon.css"/>
+        <file href="scormcontent/lib/player-0.0.11.min.js"/>
+        <file href="scormcontent/lib/lzwcompress.js"/>
+      
+
+      <!-- FRONTEND BUNDLE ASSETS -->
+      <file href="scormcontent/lib/rise/07a36ff7.js" />
+<file href="scormcontent/lib/rise/b7e6275d.css" />
+<file href="scormcontent/lib/rise/810b692a.js" />
+<file href="scormcontent/lib/rise/860bf8a7.css" />
+<file href="scormcontent/lib/rise/48b7569f.js" />
+<file href="scormcontent/lib/rise/5ce3f37c.js" />
+<file href="scormcontent/lib/rise/e8c73cc3.js" />
+<file href="scormcontent/lib/rise/d6851af1.js" />
+<file href="scormcontent/lib/rise/3c4d17f3.js" />
+<file href="scormcontent/lib/mondrian/entry.js" />
+<file href="scormcontent/lib/mondrian/f29f3d92.js" />
+<file href="scormcontent/lib/mondrian/4d907763.js" />
+<file href="scormcontent/lib/mondrian/215fe725.js" />
+<file href="scormcontent/lib/mondrian/c16e7dd3.js" />
+<file href="scormcontent/lib/mondrian/5ebb90af.js" />
+<file href="scormcontent/lib/mondrian/825dd797.js" />
+<file href="scormcontent/lib/mondrian/beccd965.js" />
+<file href="scormcontent/lib/mondrian/56ae9b9c.js" />
+
+
+      <!-- RUNTIME CONTENT STUFF -->
+      <file href="scormcontent/lib/fonts/tZzZDdniKgnBtH3m-NotoSans-Bold.ttf" />
+<file href="scormcontent/lib/fonts/rS0QEGI95Q5GSG42-NotoSans-Regular.ttf" />
+<file href="scormcontent/lib/fonts/q5s0ECuAR7j78HeL-NotoSans-Italic.ttf" />
+<file href="scormcontent/lib/fonts/Lato-Black.woff" />
+<file href="scormcontent/lib/fonts/Lato-Italic.woff" />
+<file href="scormcontent/lib/fonts/Lato-Bold.woff" />
+<file href="scormcontent/lib/fonts/Lato-Regular.woff" />
+<file href="scormcontent/lib/fonts/Lato-Light.woff" />
+<file href="scormcontent/assets/vxDXDRRCXJRpXVxf.jpg" />
+<file href="scormcontent/assets/stock-image.jpg" />
+<file href="scormcontent/assets/article-2488155-01E60A8000000578-905_636x382.jpg" />
+<file href="scormcontent/assets/AdobeStock_219863118-1210x700.jpg" />
+<file href="scormcontent/assets/iStock-1143952151.jpg" />
+<file href="scormcontent/assets/cycadian.jpg" />
+<file href="scormcontent/assets/sleep_1625625383801_1625625391094.jpg" />
+<file href="scormcontent/assets/sleep-1-1.jpg" />
+<file href="scormcontent/assets/how-sleep-affects-mental-health-4783067_V2-2ce9483affb34f50bf7406c013767f11.gif" />
+<file href="scormcontent/assets/happiness-300px1.jpg" />
+<file href="scormcontent/assets/young-woman-smiling-in-bed-stretching-arms-out.jpg" />
+<file href="scormcontent/assets/coffee%20cup.jpg" />
+<file href="scormcontent/assets/iStock_000011128879_Small-650x428.jpg" />
+<file href="scormcontent/assets/depositphotos_63149959-stock-illustration-no-mobile-phones-icon.jpg" />
+<file href="scormcontent/assets/shutterstock_123777544.jpg" />
+<file href="scormcontent/assets/GettyImages-482184469-56acf1013df78cf772b65df1.jpg" />
+<file href="scormcontent/assets/2bnmfqn0a6731.jpg" />
+<file href="scormcontent/assets/Boohoff-Law-Drowsy-Driving.jpg" />
+<file href="scormcontent/assets/in-article-image_5-tips-to-fight-driver-fatigue.jpg" />
+<file href="scormcontent/assets/stress-1558362827.jpg" />
+<file href="scormcontent/assets/beer-wine-spirits-alcohol-beverages-australia-generic-alcohol-810x405.jpg" />
+<file href="scormcontent/assets/Medication_1296x728-header-1296x729.jpg" />
+<file href="scormcontent/assets/635664-jan-kopriva-ain-cy1k5sk-unsplash.jpg" />
+<file href="scormcontent/assets/female_talking_to_doctor.jpg" />
+<file href="scormcontent/assets/bUKMRo/mountains.jpg" />
+<file href="scormcontent/assets/uAUNli/stock-image.jpg" />
+<file href="scormcontent/assets/6cKZZS/stock-image.jpg" />
+<file href="scormcontent/assets/Hb1NA-/stock-image.jpg" />
+<file href="scormcontent/assets/1200px-No_smoking_sign.svg.png" />
+<file href="scormcontent/assets/l0908b16207233934035.jpg" />
+<file href="scormcontent/assets/sit%20move.png" />
+<file href="scormcontent/assets/webimage-C4829963-50C0-44BB-BE44533DBE3B2DD1.jpg" />
+<file href="scormcontent/assets/1c3bc747-fef3-4ce9-a3ae-dc94f44fbcb1.jpg" />
+<file href="scormcontent/assets/download.jpg" />
+<file href="scormcontent/assets/ISS_logo_edge_RGB-HEX_2020.png" />
+<file href="scormcontent/assets/work-schedule.jpg" />
+<file href="scormcontent/assets/GettyImages-107819789.jpg" />
+<file href="scormcontent/assets/webimage-378EDA23-419D-4E92-91E7D6727283A47F.jpg" />
+<file href="scormcontent/assets/webimage-59c44e2e-b16f-4481-813f-7389dd44b3ca.jpg" />
+<file href="scormcontent/assets/webimage-D8EC1683-C757-4D2B-B8C117C816E33059.jpg" />
+<file href="scormcontent/assets/uUtsQb4f7qLsboJr.png" />
+
+      <file href="scormcontent/locales/und.js" />
+
+    </resource>
+  </resources>
+</manifest>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Qualification - ANZ LMS</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <nav class="dashboard-header">
+      <h2>Add Qualification</h2>
+      <div class="header-buttons">
+        <a class="btn" href="{{ url_for('main.qualifications') }}">Back</a>
+        <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
+      </div>
+    </nav>
+
+    <!-- Form Section -->
+    <!-- Form Section -->
+    <section class="dashboard-section">
+      <form method="POST" action="{{ url_for('main.add_qualification') }}">
+        <!-- Qualification Name -->
+        <label for="qualification_name">Qualification Name:</label>
+        <input
+          type="text"
+          id="qualification_name"
+          name="qualification_name"
+          placeholder="Enter qualification name"
+          required
+        />
+        <br />
+
+        <!-- Description -->
+        <label for="description">Description:</label>
+        <textarea
+          id="description"
+          name="description"
+          placeholder="Enter description"
+        ></textarea>
+        <br />
+
+        <!-- Valid For (Days) -->
+        <label for="valid_days">Valid for (Days):</label>
+        <input
+          type="number"
+          id="valid_days"
+          name="valid_days"
+          placeholder="Number of days valid"
+        />
+        <br />
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn">Save</button>
+      </form>
+    </section>
+
+    <!-- Footer -->
+    <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+  </body>
+</html>

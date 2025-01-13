@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <!-- Meta Information -->
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - ANZ LMS</title>
+
+    <!-- Link to External CSS -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header Section -->
+    <nav class="dashboard-header">
+      <h2>ANZ LMS</h2>
+      <div class="header-buttons">
+        <!-- Buttons for Access Card and Adding New Location -->
+        <button class="btn" aria-label="Access Card">Access Card</button>
+        <a
+  class="btn"
+  href="{{ url_for('main.add_location', user_id=user.id) }}"
+  aria-label="Add New Location"
+>
+  Add New Location
+</a>
+
+          
+        </button>
+        <!-- Logout Button -->
+        <a
+          class="btn logout-btn"
+          href="{{ url_for('main.logout') }}"
+          aria-label="Logout"
+        >
+          Logout
+        </a>
+        <!-- Display User's Name -->
+        <span class="user-name"
+          >{{ user.first_name }} {{ user.last_name }}</span
+        >
+      </div>
+    </nav>
+
+    <!-- Modules Section -->
+    <section class="dashboard-section">
+      <h3>Modules</h3>
+      <!-- Cards Container for Modules -->
+      <div class="dashboard-cards">
+        <!-- Module 1 -->
+        <div class="card green">
+          <h4>Module 1</h4>
+          <p>Completed</p>
+          <p>On 12/1/24</p>
+        </div>
+        <!-- Module 2 -->
+        <div class="card green">
+          <h4>Module 2</h4>
+          <p>Completed</p>
+          <p>On 12/1/24</p>
+        </div>
+        <!-- Module 3 -->
+        <div class="card red">
+          <h4>Module 3</h4>
+          <p>Not Started</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Qualifications Section -->
+    <section class="dashboard-section">
+      <h3>Qualifications</h3>
+      <!-- Cards Container for Qualifications -->
+      <div class="dashboard-cards">
+        <!-- Qualification 1 -->
+        <div class="card green">
+          <h4>Qualification 1</h4>
+          <p>Uploaded</p>
+          <p>Verified</p>
+          <p>Expiry 24/06/2027</p>
+        </div>
+        <!-- Qualification 2 -->
+        <div class="card yellow">
+          <h4>Qualification 2</h4>
+          <p>Uploaded</p>
+          <p>Not Verified</p>
+          <p>Expiry 10/10/2027</p>
+        </div>
+        <!-- Qualification 3 -->
+        <div class="card red">
+          <h4>Qualification 3</h4>
+          <p>Not uploaded</p>
+          <p>Not Verified</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer Section -->
+    <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+  </body>
+</html>

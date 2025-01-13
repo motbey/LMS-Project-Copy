@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Content - Admin Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <style>
+      /* Custom styling for square buttons */
+      .square-buttons {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 30px;
+      }
+
+      .square-buttons .btn {
+        display: inline-block;
+        width: 150px;
+        height: 150px;
+        background-color: #007bff;
+        color: white;
+        text-align: center;
+        line-height: 150px;
+        font-size: 18px;
+        font-weight: bold;
+        border-radius: 8px;
+        text-decoration: none;
+      }
+
+      .square-buttons .btn:hover {
+        background-color: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <nav>
+      <h2>Admin Dashboard - Content</h2>
+      <div class="header-buttons">
+        <a class="btn" href="{{ url_for('main.admin_dashboard') }}"
+          >Dashboard</a
+        >
+        <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
+      </div>
+    </nav>
+
+    <section class="dashboard-section">
+      <h3>Content Management</h3>
+      <p>Select an option below to manage the content.</p>
+
+      <!-- Buttons Section -->
+      <div class="square-buttons">
+        <a class="btn" href="{{ url_for('main.qualifications') }}"
+          >Qualifications</a
+        >
+        <a class="btn" href="{{ url_for('main.modules') }}">Modules</a>
+      </div>
+    </section>
+
+    <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+  </body>
+</html>

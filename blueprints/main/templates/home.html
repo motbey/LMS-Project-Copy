@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ANZ LMS - Home</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <nav>
+      <h2>ANZ LMS</h2>
+    </nav>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+
+    <!-- Main Heading -->
+    <h1>Welcome to the ANZ Learning Management System</h1>
+    <p class="callout">
+      Your portal for corporate training and compliance management.
+    </p>
+
+    <!-- Login Form -->
+    <form method="POST" action="{{ url_for('main.login') }}">
+      <!-- Login Section -->
+      <h3>Login</h3>
+
+      <!-- Email Field -->
+      <label for="email">Email:</label>
+      <input
+        type="email"
+        id="email"
+        name="email"
+        placeholder="Enter your email"
+        required
+      />
+
+      <!-- Password Field -->
+      <label for="password">Password:</label>
+      <input
+        type="password"
+        id="password"
+        name="password"
+        placeholder="Enter your password"
+        required
+      />
+
+      <!-- Login Button -->
+      <div class="login-buttons">
+        <!-- Login Button -->
+        <button type="submit" class="login-btn">Login</button>
+
+        <!-- Register Button -->
+        <a href="{{ url_for('main.register') }}" class="register-btn"
+          >Register</a
+        >
+      </div>
+    </form>
+
+    <!-- Footer -->
+    <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+  </body>
+</html>

@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Qualification</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <h2>Edit Qualification</h2>
+    <form method="POST">
+      <label for="name">Qualification Name:</label>
+      <input
+        type="text"
+        id="name"
+        name="name"
+        value="{{ qualification.name }}"
+        required
+      />
+
+      <label for="description">Description:</label>
+      <textarea id="description" name="description">
+{{ qualification.description }}</textarea
+      >
+
+      <label for="valid_days">Valid For (Days):</label>
+      <input
+        type="number"
+        id="valid_days"
+        name="valid_days"
+        value="{{ qualification.valid_days }}"
+      />
+
+      <button type="submit" class="btn btn-primary">Save Changes</button>
+    </form>
+    <a href="{{ url_for('main.qualifications') }}" class="btn btn-secondary"
+      >Cancel</a
+    >
+  </body>
+</html>

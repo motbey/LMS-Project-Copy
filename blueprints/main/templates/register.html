@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register - ANZ LMS</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <nav>
+      <h2>ANZ LMS</h2>
+    </nav>
+
+    <!-- Main Content -->
+    <main>
+      <h1>Register for ANZ LMS</h1>
+
+      <!-- Registration Form -->
+      <form method="POST" action="{{ url_for('main.register') }}">
+        <!-- First Row -->
+        <div class="form-container">
+          <div>
+            <label for="first_name">First Name:</label>
+            <input
+              type="text"
+              id="first_name"
+              name="first_name"
+              placeholder="Enter first name"
+              required
+            />
+          </div>
+          <div>
+            <label for="last_name">Last Name:</label>
+            <input
+              type="text"
+              id="last_name"
+              name="last_name"
+              placeholder="Enter last name"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Second Row -->
+        <div class="form-container">
+          <div>
+            <label for="email">Email:</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              placeholder="Enter email"
+              required
+            />
+          </div>
+          <div>
+            <label for="company">Company:</label>
+            <select id="company" name="company" required>
+              <option value="Company A">Company A</option>
+              <option value="Company B">Company B</option>
+              <option value="Company C">Company C</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Third Row -->
+        <div class="form-container">
+          <div>
+            <label for="location">Location:</label>
+            <select id="location" name="location_id" required>
+              {% for location in locations %}
+              <option value="{{ location.id }}">{{ location.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label for="code">Training Code:</label>
+            <input
+              type="text"
+              id="code"
+              name="code"
+              placeholder="Enter training code"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Fourth Row -->
+        <div class="form-container">
+          <div>
+            <label for="password">Password:</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter password"
+              required
+            />
+          </div>
+          <div>
+            <label for="confirm_password">Confirm Password:</label>
+            <input
+              type="password"
+              id="confirm_password"
+              name="confirm_password"
+              placeholder="Confirm password"
+              required
+            />
+          </div>
+        </div>
+
+        <!-- Buttons -->
+        <div class="form-buttons">
+          <button type="submit">Register</button>
+          <a href="{{ url_for('main.home') }}" class="cancel-btn">Cancel</a>
+        </div>
+      </form>
+    </main>
+
+    <!-- Footer -->
+    <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+  </body>
+</html>

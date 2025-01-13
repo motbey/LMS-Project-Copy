@@ -1,0 +1,20 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Virtual Environment
+# env/
+
+# Database
+# *.db
+# instance/
+
+# Compiled files
+*.dist-info/
+
+# Migrations
+# migrations/
+
+# Logs
+*.log

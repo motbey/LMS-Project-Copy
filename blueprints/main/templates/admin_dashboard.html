@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard - ANZ LMS</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <script>
+      // JavaScript to toggle filter visibility
+      function toggleFilters() {
+        var filterSection = document.getElementById("filter-section");
+        filterSection.classList.toggle("hidden");
+      }
+    </script>
+  </head>
+  <body>
+    <!-- Header -->
+    <nav class="dashboard-header">
+      <h2>Admin Dashboard</h2>
+      <div class="header-buttons">
+        <a class="btn" href="{{ url_for('main.settings') }}">Settings</a>
+        <a class="btn" href="{{ url_for('main.content') }}">Content</a>
+        <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
+      </div>
+    </nav>
+
+    <!-- Admin Content -->
+    <section class="dashboard-section">
+      <h3>Admin Controls</h3>
+
+      <!-- Filter Button -->
+      <button class="btn filter-btn" onclick="toggleFilters()">Filter</button>
+
+      <!-- Filter Section -->
+      <div id="filter-section" class="hidden"> <!-- Ensure hidden class is applied initially -->
+        <form method="GET" action="{{ url_for('main.admin_dashboard') }}">
+          <div class="filter-container">
+            <div class="filter-row">
+              <div class="filter-group">
+                <label>ID:</label>
+                <input type="text" name="id" value="{{ filters.id }}" placeholder="Keyword" />
+              </div>
+              <div class="filter-group">
+                <label>First Name:</label>
+                <input type="text" name="first_name" value="{{ filters.first_name }}" placeholder="Keyword" />
+              </div>
+              <div class="filter-group">
+                <label>Last Name:</label>
+                <input type="text" name="last_name" value="{{ filters.last_name }}" placeholder="Keyword" />
+              </div>
+              <div class="filter-group">
+                <label>Email:</label>
+                <input type="text" name="email" value="{{ filters.email }}" placeholder="Keyword" />
+              </div>
+            </div>
+
+            <div class="filter-row">
+              <!-- Dropdown for Company -->
+              <div class="filter-group">
+                <label>Company:</label>
+                <select name="company">
+                  <option value="">All</option>
+                  {% for company in companies %}
+                  <option value="{{ company }}" {% if filters.company == company %}selected{% endif %}>
+                    {{ company }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Dropdown for Job Title -->
+              <div class="filter-group">
+                <label>Job Title:</label>
+                <select name="job_title">
+                  <option value="">All</option>
+                  {% for job in job_titles %}
+                  <option value="{{ job }}" {% if filters.job_title == job %}selected{% endif %}>
+                    {{ job }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Dropdown for Location -->
+              <div class="filter-group">
+                <label>Location:</label>
+                <select name="location">
+                  <option value="">All</option>
+                  {% for location in locations %}
+                  <option value="{{ location }}" {% if filters.location == location %}selected{% endif %}>
+                    {{ location }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Dropdown for Role -->
+              <div class="filter-group">
+                <label>Role:</label>
+                <select name="role">
+                  <option value="">All</option>
+                  {% for role in roles %}
+                  <option value="{{ role }}" {% if filters.role == role %}selected{% endif %}>
+                    {{ role }}
+                  </option>
+                  {% endfor %}
+                </select>
+              </div>
+
+              <!-- Dropdown for Status -->
+              <div class="filter-group">
+                <label>Status:</label>
+                <select name="status">
+                  <option value="">All</option>
+                  <option value="Active" {% if filters.status == 'Active' %}selected{% endif %}>Active</option>
+                  <option value="Inactive" {% if filters.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="filter-actions">
+              <button type="submit" class="btn">Search</button>
+              <a href="{{ url_for('main.admin_dashboard') }}" class="btn">Reset Filter</a>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- User Table -->
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>
+              <a href="{{ url_for('main.admin_dashboard', sort='id', order='asc' if sort != 'id' or order == 'desc' else 'desc') }}" class="sortable">
+                ID <span>&#x2195;</span>
+              </a>
+            </th>
+            <th>
+              <a href="{{ url_for('main.admin_dashboard', sort='first_name', order='asc' if sort != 'first_name' or order == 'desc' else 'desc') }}" class="sortable">
+                First Name <span>&#x2195;</span>
+              </a>
+            </th>
+            <th>
+              <a href="{{ url_for('main.admin_dashboard', sort='last_name', order='asc' if sort != 'last_name' or order == 'desc' else 'desc') }}" class="sortable">
+                Last Name <span>&#x2195;</span>
+              </a>
+            </th>
+            <th>
+              <a href="{{ url_for('main.admin_dashboard', sort='email', order='asc' if sort != 'email' or order == 'desc' else 'desc') }}" class="sortable">
+                Email <span>&#x2195;</span>
+              </a>
+            </th>
+            <th>
+              <a href="{{ url_for('main.admin_dashboard', sort='job_title', order='asc' if sort != 'job_title' or order == 'desc' else 'desc') }}" class="sortable">
+                Job Title <span>&#x2195;</span>
+              </a>
+            </th>
+            <th>
+              <a href="{{ url_for('main.admin_dashboard', sort='company', order='asc' if sort != 'company' or order == 'desc' else 'desc') }}" class="sortable">
+                Company <span>&#x2195;</span>
+              </a>
+            </th>
+            <th>Location</th>
+            <th>
+              <a href="{{ url_for('main.admin_dashboard', sort='role', order='asc' if sort != 'role' or order == 'desc' else 'desc') }}" class="sortable">
+                Role <span>&#x2195;</span>
+              </a>
+            </th>
+            <th>
+              <a href="{{ url_for('main.admin_dashboard', sort='status', order='asc' if sort != 'status' or order == 'desc' else 'desc') }}" class="sortable">
+                Status <span>&#x2195;</span>
+              </a>
+            </th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.first_name }}</td>
+            <td>{{ user.last_name }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.job_title }}</td> <!-- Job Title Column -->
+            <td>{{ user.company }}</td>
+            <td>
+              {% if user.locations %}
+                {{ user.locations }}
+              {% else %}
+                No Locations
+              {% endif %}
+            </td>
+            <td>{{ user.role }}</td>
+            <td>{{ user.status }}</td>
+            <td>
+              <a href="{{ url_for('main.edit_user', id=user.id) }}" class="btn btn-success btn-sm">Edit</a>
+              <form method="POST" action="{{ url_for('main.delete_user', id=user.id) }}" class="inline-form" onsubmit="return confirm('Are you sure?')">
+                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+              </form>
+              <form method="POST" action="{{ url_for('main.reset_password', id=user.id) }}" class="inline-form" onsubmit="return confirm('Are you sure?')">
+                <button type="submit" class="btn btn-warning btn-sm">Reset Password</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- Pagination Controls -->
+      <div class="pagination">
+        {% if pagination.has_prev %}
+          <a href="{{ url_for('main.admin_dashboard', page=pagination.prev_num) }}" class="btn">Previous</a>
+        {% endif %}
+        <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+        {% if pagination.has_next %}
+          <a href="{{ url_for('main.admin_dashboard', page=pagination.next_num) }}" class="btn">Next</a>
+        {% endif %}
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+  </body>
+</html>

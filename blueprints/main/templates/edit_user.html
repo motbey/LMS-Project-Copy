@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit User - ANZ LMS</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <nav class="dashboard-header">
+      <h2>Edit User</h2>
+      <div class="header-buttons">
+        <a class="btn" href="{{ url_for('main.admin_dashboard') }}">Back</a>
+        <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
+      </div>
+    </nav>
+
+    <!-- Form Section -->
+    <section class="dashboard-section">
+      <form method="POST">
+        <label>First Name:</label>
+        <input type="text" name="first_name" value="{{ user.first_name }}" required />
+
+        <label>Last Name:</label>
+        <input type="text" name="last_name" value="{{ user.last_name }}" required />
+
+        <label>Email:</label>
+        <input type="email" name="email" value="{{ user.email }}" required />
+
+        <!-- Company Dropdown -->
+        <label>Company:</label>
+        <select name="company_id" required>
+            {% for company in companies %}
+                <option value="{{ company.id }}" {% if user.company_id == company.id %}selected{% endif %}>
+                    {{ company.name }}
+                </option>
+            {% endfor %}
+        </select>
+        
+
+<!-- Locations Multi-Select -->
+<label>Locations:</label>
+<select name="locations" id="locations" multiple>
+    {% for location in locations %}
+        <option value="{{ location.id }}" 
+            {% if location in user.locations %}selected{% endif %}>
+            {{ location.name }}
+        </option>
+    {% endfor %}
+</select>
+<!-- Job Title Dropdown -->
+<label>Job Title:</label>
+<select name="job_title_id" required>
+    {% for job_title in job_titles %}
+        <option value="{{ job_title.id }}" 
+                {% if user.job_title_id == job_title.id %}selected{% endif %}>
+            {{ job_title.name }}
+        </option>
+    {% endfor %}
+</select>
+
+<!-- Add Select2 or Custom Styling -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
+<script>
+    // Initialize Select2 for Multi-Select Dropdown
+    $(document).ready(function() {
+        $('#locations').select2({
+            placeholder: "Select Locations", // Placeholder text
+            allowClear: true                // Add a clear button
+        });
+    });
+</script>
+
+
+
+
+<!-- Role Dropdown -->
+<label>Role:</label>
+<select name="role" required>
+    {% for role in roles %}
+        <option value="{{ role }}" {% if user.role == role %}selected{% endif %}>
+            {{ role }}
+        </option>
+    {% endfor %}
+</select>
+
+<!-- Status Dropdown -->
+<label>Status:</label>
+<select name="status" required>
+    {% for status in statuses %}
+        <option value="{{ status }}" {% if user.status == status %}selected{% endif %}>
+            {{ status }}
+        </option>
+    {% endfor %}
+</select>
+
+<!-- Save Button -->
+<button type="submit" class="btn btn-success">Save</button>
+
+</form> <!-- Ensure this closes the form properly -->
+

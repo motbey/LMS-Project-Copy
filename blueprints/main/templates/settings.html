@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings - ANZ LMS</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <nav class="dashboard-header">
+      <h2>Settings</h2>
+      <div class="header-buttons">
+        <a class="btn" href="{{ url_for('main.admin_dashboard') }}"
+          >Dashboard</a
+        >
+        <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
+      </div>
+    </nav>
+
+    <!-- Settings Section -->
+    <section class="dashboard-section">
+      <!-- Feedback Messages -->
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %}
+      <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+      {% endif %} {% endwith %}
+
+      <!-- Create Job Title Section -->
+      <div class="create-job-title-section" style="margin-top: 30px">
+        <h3>Create Job Title</h3>
+
+        <!-- Button to Show Form -->
+        <button id="showJobTitleForm" class="btn btn-primary">
+          Create Job Title
+        </button>
+
+        <!-- Hidden Job Title Form -->
+        <div id="jobTitleForm" class="hidden-form" style="margin-top: 20px">
+          <!-- Single Job Title Form -->
+          <form method="POST" action="{{ url_for('main.manage_job_titles') }}">
+            <label for="job_title_name">Job Title Name:</label>
+            <input
+              type="text"
+              id="job_title_name"
+              name="job_title_name"
+              placeholder="Enter Job Title"
+              required
+            />
+            <button type="submit" class="btn btn-success">Add Job Title</button>
+          </form>
+
+          <!-- Bulk Upload Form -->
+          <form
+            method="POST"
+            enctype="multipart/form-data"
+            action="{{ url_for('main.upload_job_titles') }}"
+            style="margin-top: 20px"
+          >
+            <label for="bulk_upload_job_titles">Bulk Upload:</label>
+            <input
+              type="file"
+              id="bulk_upload_job_titles"
+              name="file"
+              accept=".xlsx, .xls"
+              required
+            />
+            <button type="submit" class="btn btn-info">Upload Excel</button>
+          </form>
+
+          <!-- Download Job Title Template Button -->
+          <form
+            method="GET"
+            action="{{ url_for('main.download_job_title_template') }}"
+            style="margin-top: 10px"
+          >
+            <button type="submit" class="btn btn-secondary">
+              Download Job Title Template
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Create Company Section -->
+      <div class="create-company-section" style="margin-top: 30px">
+        <h3>Create Company</h3>
+        <button id="showCompanyForm" class="btn btn-primary">
+          Create Company
+        </button>
+        <div id="companyForm" class="hidden-form" style="margin-top: 20px">
+          <form method="POST" action="{{ url_for('main.create_company') }}">
+            <label for="company_name">Company Name:</label>
+            <input
+              type="text"
+              id="company_name"
+              name="company_name"
+              placeholder="Enter Company Name"
+              required
+            />
+            <button type="submit" class="btn btn-success">Add Company</button>
+          </form>
+          <form
+            method="POST"
+            enctype="multipart/form-data"
+            action="{{ url_for('main.bulk_upload_companies') }}"
+            style="margin-top: 20px"
+          >
+            <label for="bulk_upload">Bulk Upload:</label>
+            <input
+              type="file"
+              id="bulk_upload"
+              name="file"
+              accept=".xlsx, .xls"
+              required
+            />
+            <button type="submit" class="btn btn-info">Upload Excel</button>
+          </form>
+          <form
+            method="GET"
+            action="{{ url_for('main.download_company_template') }}"
+            style="margin-top: 10px"
+          >
+            <button type="submit" class="btn btn-secondary">
+              Download Company Template
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Create Location Section -->
+      <div class="create-location-section" style="margin-top: 30px">
+        <h3>Create Location</h3>
+        <button id="showLocationForm" class="btn btn-primary">
+          Create Location
+        </button>
+        <div id="locationForm" class="hidden-form" style="margin-top: 20px">
+          <form method="POST" action="{{ url_for('main.create_location') }}">
+            <label for="location_name">Location Name:</label>
+            <input
+              type="text"
+              id="location_name"
+              name="location_name"
+              placeholder="Enter Location Name"
+              required
+            />
+            <button type="submit" class="btn btn-success">Add Location</button>
+          </form>
+          <form
+            method="POST"
+            enctype="multipart/form-data"
+            action="{{ url_for('main.bulk_upload_locations') }}"
+            style="margin-top: 20px"
+          >
+            <label for="bulk_upload_locations">Bulk Upload:</label>
+            <input
+              type="file"
+              id="bulk_upload_locations"
+              name="file"
+              accept=".xlsx, .xls"
+              required
+            />
+            <button type="submit" class="btn btn-info">Upload Excel</button>
+          </form>
+          <form
+            method="GET"
+            action="{{ url_for('main.download_location_template') }}"
+            style="margin-top: 10px"
+          >
+            <button type="submit" class="btn btn-secondary">
+              Download Location Template
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Create User Section -->
+      <div class="create-user-section" style="margin-top: 30px">
+        <h3>Create User</h3>
+        <button id="showUserForm" class="btn btn-primary">Create User</button>
+        <div id="userForm" class="hidden-form" style="margin-top: 20px">
+          <form method="POST" action="{{ url_for('main.create_user') }}">
+            <div class="form-group">
+              <label for="first_name">First Name:</label>
+              <input
+                type="text"
+                id="first_name"
+                name="first_name"
+                placeholder="Enter First Name"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="last_name">Last Name:</label>
+              <input
+                type="text"
+                id="last_name"
+                name="last_name"
+                placeholder="Enter Last Name"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="email">Email Address:</label>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="Enter Email Address"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="company_id">Company:</label>
+              <select id="company_id" name="company_id" required>
+                <option value="" disabled selected>Select Company</option>
+                {% for company in companies %}
+                <option value="{{ company.id }}">{{ company.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="role">Role:</label>
+              <select id="role" name="role" required>
+                <option value="User">User</option>
+                <option value="Admin">Admin</option>
+                <option value="Sub Admin">Sub Admin</option>
+                <option value="Security">Security</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="location_id">Location:</label>
+              <select id="location_id" name="location_id" required>
+                <option value="" disabled selected>Select Location</option>
+                {% for location in locations %}
+                <option value="{{ location.id }}">{{ location.name }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <button
+              type="submit"
+              class="btn btn-success"
+              style="margin-top: 20px"
+            >
+              Add User
+            </button>
+          </form>
+          <form
+            method="POST"
+            enctype="multipart/form-data"
+            action="{{ url_for('main.bulk_upload_users') }}"
+            style="margin-top: 20px"
+          >
+            <label for="bulk_upload_users">Bulk Upload:</label>
+            <input
+              type="file"
+              id="bulk_upload_users"
+              name="file"
+              accept=".xlsx, .xls"
+              required
+            />
+            <button type="submit" class="btn btn-info">Upload Excel</button>
+          </form>
+          <form
+            method="GET"
+            action="{{ url_for('main.download_user_template') }}"
+            style="margin-top: 10px"
+          >
+            <button type="submit" class="btn btn-secondary">
+              Download User Template
+            </button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- JavaScript for Toggle Visibility -->
+    <script>
+      // Toggle Job Title Form
+      document
+        .getElementById("showJobTitleForm")
+        .addEventListener("click", function () {
+          var form = document.getElementById("jobTitleForm");
+          form.classList.toggle("show-form");
+        });
+
+      // Toggle Company Form
+      document
+        .getElementById("showCompanyForm")
+        .addEventListener("click", function () {
+          var form = document.getElementById("companyForm");
+          form.classList.toggle("show-form");
+        });
+
+      // Toggle Location Form
+      document
+        .getElementById("showLocationForm")
+        .addEventListener("click", function () {
+          var form = document.getElementById("locationForm");
+          form.classList.toggle("show-form");
+        });
+
+      // Toggle User Form
+      document
+        .getElementById("showUserForm")
+        .addEventListener("click", function () {
+          var form = document.getElementById("userForm");
+          form.classList.toggle("show-form");
+        });
+    </script>
+
+    <!-- Footer -->
+    <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+  </body>
+</html>

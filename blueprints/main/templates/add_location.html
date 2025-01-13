@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Add Location - ANZ LMS</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <nav class="dashboard-header">
+      <h2>Add New Location</h2>
+      <div class="header-buttons">
+        <a class="btn" href="{{ url_for('main.admin_dashboard') }}"
+          >Dashboard</a
+        >
+        <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
+      </div>
+    </nav>
+
+    <!-- Form Section -->
+    <section class="dashboard-section">
+      <form
+        method="POST"
+        action="{{ url_for('main.add_location', user_id=user.id) }}"
+      >
+        <label for="location_id">Add Location:</label>
+        <select name="location_id" required>
+          {% for location in locations %}
+          <option value="{{ location.id }}">{{ location.name }}</option>
+          {% endfor %}
+        </select>
+        <button type="submit" class="btn btn-success btn-sm">Add</button>
+      </form>
+    </section>
+  </body>
+</html>

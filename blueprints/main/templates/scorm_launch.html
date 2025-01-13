@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SCORM Viewer</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <style>
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      /* Header Bar */
+      .header-bar {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        background-color: #003366; /* Dark blue for a corporate look */
+        color: white;
+        padding: 10px 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      /* Close Button */
+      .close-btn {
+        background-color: #f44336;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      .close-btn:hover {
+        background-color: #d32f2f;
+      }
+
+      /* SCORM Content */
+      iframe {
+        flex-grow: 1;
+        border: none;
+        width: 100%;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header Bar -->
+    <div class="header-bar">
+      <button class="close-btn" onclick="closeScormViewer()">Close</button>
+    </div>
+
+    <!-- SCORM Content -->
+    <iframe
+      src="{{ url_for('static', filename=scorm_file) }}"
+      title="SCORM Content"
+    ></iframe>
+
+    <script>
+      function closeScormViewer() {
+        // Close the current window (SCORM Viewer)
+        window.close();
+      }
+    </script>
+  </body>
+</html>

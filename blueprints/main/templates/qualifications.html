@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Qualifications - ANZ LMS</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <nav class="dashboard-header">
+      <h2>Qualifications</h2>
+      <div class="header-buttons">
+        <a class="btn" href="{{ url_for('main.admin_dashboard') }}"
+          >Dashboard</a
+        >
+        <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
+      </div>
+      <div class="add-button-container">
+        <a class="btn add-btn" href="{{ url_for('main.add_qualification') }}"
+          >+Add</a
+        >
+      </div>
+    </nav>
+
+    <!-- Placeholder Section -->
+    <section class="dashboard-section">
+      <h3>Qualifications Management</h3>
+
+      <!-- Qualification Table -->
+      <table class="admin-table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Valid For (Days)</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for qualification in qualifications %}
+          <tr>
+            <td>{{ qualification.id }}</td>
+            <td>{{ qualification.name }}</td>
+            <td>{{ qualification.description }}</td>
+            <td>{{ qualification.valid_days }}</td>
+            <td>
+              <!-- Edit Button -->
+              <a
+                href="{{ url_for('main.edit_qualification', id=qualification.id) }}"
+                class="btn btn-success btn-sm"
+                >Edit</a
+              >
+
+              <!-- Delete Button -->
+              <form
+                method="POST"
+                action="{{ url_for('main.delete_qualification', id=qualification.id) }}"
+                class="inline-form"
+                onsubmit="return confirm('Are you sure you want to delete this qualification?')"
+              >
+                <button type="submit" class="btn btn-danger btn-sm">
+                  Delete
+                </button>
+              </form>
+            </td>
+          </tr>
+
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </body>
+</html>
