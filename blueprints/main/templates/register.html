@@ -2,7 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
     <title>Register - ANZ LMS</title>
     <link
       rel="stylesheet"
@@ -17,14 +20,27 @@
 
     <!-- Main Content -->
     <main>
-      <h1>Register for ANZ LMS</h1>
-
       <!-- Registration Form -->
       <form method="POST" action="{{ url_for('main.register') }}">
+        <!-- Add inside the form, before the first form-container -->
+        <div class="form-header">
+          <h1>Register for ANZ LMS</h1>
+          <p>
+            Create your account to access training materials and track your
+            progress.
+          </p>
+        </div>
+
+        <!-- Add progress bar at the top of the form -->
+        <div class="form-progress">
+          <div class="progress-bar" style="width: 0%"></div>
+        </div>
+
         <!-- First Row -->
+        <div class="form-section-title">Personal Information</div>
         <div class="form-container">
           <div>
-            <label for="first_name">First Name:</label>
+            <label for="first_name" class="required">First Name:</label>
             <input
               type="text"
               id="first_name"
@@ -32,9 +48,10 @@
               placeholder="Enter first name"
               required
             />
+            <div class="field-hint">Enter your legal first name</div>
           </div>
           <div>
-            <label for="last_name">Last Name:</label>
+            <label for="last_name" class="required">Last Name:</label>
             <input
               type="text"
               id="last_name"
@@ -43,12 +60,8 @@
               required
             />
           </div>
-        </div>
-
-        <!-- Second Row -->
-        <div class="form-container">
           <div>
-            <label for="email">Email:</label>
+            <label for="email" class="required">Email:</label>
             <input
               type="email"
               id="email"
@@ -57,28 +70,49 @@
               required
             />
           </div>
+        </div>
+
+        <!-- Second Row -->
+        <div class="form-section-title">Account Details</div>
+        <div class="form-container">
           <div>
-            <label for="company">Company:</label>
-            <select id="company" name="company" required>
-              <option value="Company A">Company A</option>
-              <option value="Company B">Company B</option>
-              <option value="Company C">Company C</option>
+            <label for="company" class="required">Company:</label>
+            <select id="company" name="company_id" required>
+              <option value="" disabled selected>Select a company</option>
+              {% for company in companies %}
+              <option value="{{ company.id }}">{{ company.name }}</option>
+              {% endfor %}
             </select>
+            <div class="field-hint">Select the Company you work for</div>
+          </div>
+          <div>
+            <label for="job_title" class="required">Job Title:</label>
+            <select id="job_title" name="job_title_id" required>
+              <option value="" disabled selected>Select a job title</option>
+              {% for job_title in job_titles %}
+              <option value="{{ job_title.id }}">{{ job_title.name }}</option>
+              {% endfor %}
+            </select>
+            <div class="field-hint">Select your Job Title</div>
+          </div>
+          <div>
+            <label for="location" class="required">Location:</label>
+            <select id="location" name="location_id" required>
+              <option value="" disabled selected>Select a location</option>
+              {% for location in locations %}
+              <option value="{{ location.id }}">{{ location.name }}</option>
+              {% endfor %}
+            </select>
+            <div class="field-hint">
+              Select the Location you are first going to work at
+            </div>
           </div>
         </div>
 
         <!-- Third Row -->
         <div class="form-container">
           <div>
-            <label for="location">Location:</label>
-            <select id="location" name="location_id" required>
-              {% for location in locations %}
-              <option value="{{ location.id }}">{{ location.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div>
-            <label for="code">Training Code:</label>
+            <label for="code" class="required">Training Code:</label>
             <input
               type="text"
               id="code"
@@ -92,17 +126,26 @@
         <!-- Fourth Row -->
         <div class="form-container">
           <div>
-            <label for="password">Password:</label>
-            <input
-              type="password"
-              id="password"
-              name="password"
-              placeholder="Enter password"
-              required
-            />
+            <label for="password" class="required">Password:</label>
+            <div class="password-tooltip">
+              <input type="password" id="password" name="password" required />
+              <div class="tooltip-text">
+                Password must contain:
+                <ul>
+                  <li>At least 8 characters</li>
+                  <li>One uppercase letter</li>
+                  <li>One lowercase letter</li>
+                  <li>One number</li>
+                  <li>One special character</li>
+                </ul>
+              </div>
+            </div>
+            <div class="password-strength"></div>
           </div>
           <div>
-            <label for="confirm_password">Confirm Password:</label>
+            <label for="confirm_password" class="required"
+              >Confirm Password:</label
+            >
             <input
               type="password"
               id="confirm_password"
@@ -123,5 +166,6 @@
 
     <!-- Footer -->
     <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+    <script src="{{ url_for('static', filename='js/password.js') }}"></script>
   </body>
 </html>
