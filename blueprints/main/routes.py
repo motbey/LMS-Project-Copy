@@ -22,6 +22,7 @@ import zipfile
 from lxml import etree
 from .models import Module
 from blueprints.main.models import JobTitle  # Adjust the path if needed
+import re
 
 
 # Home route
@@ -34,17 +35,27 @@ def home():
 def register():
     # Fetch all available locations from the database
     locations = Location.query.all()
+    # Fetch all companies from the database
+    companies = Company.query.all()
+    # Fetch all job titles from the database
+    job_titles = JobTitle.query.all()
 
     if request.method == 'POST':
         # Get form data
         first_name = request.form.get('first_name')
         last_name = request.form.get('last_name')
         email = request.form.get('email')
-        company = request.form.get('company')
+        company_id = request.form.get('company_id')  # Changed to get company_id
+        job_title_id = request.form.get('job_title_id')
         code = request.form.get('code')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
-        location_id = request.form.get('location_id')  # Updated to get location ID
+        location_id = request.form.get('location_id')
+
+        # Validate password strength
+        if not validate_password_strength(password):
+            flash('Password does not meet minimum requirements!', 'danger')
+            return redirect(url_for('main.register'))
 
         # Check if passwords match
         if password != confirm_password:
@@ -60,16 +71,17 @@ def register():
         # Hash the password
         hashed_password = generate_password_hash(password)
 
-        # Create a new user (Role is default 'User')
+        # Create a new user
         new_user = User(
             first_name=first_name,
             last_name=last_name,
             email=email,
-            company=company,
+            company_id=company_id,  # Changed to company_id
+            job_title_id=job_title_id,
             code=code,
             password=hashed_password,
-            role="User",  # Default role
-            status="Active"  # Default status
+            role="User",
+            status="Active"
         )
 
         # Assign selected location to the user
@@ -84,9 +96,26 @@ def register():
         flash('Registration successful! You can now log in.', 'success')
         return redirect(url_for('main.home'))
 
-    # Render registration form with available locations
-    return render_template('register.html', locations=locations)
+    # Pass locations, companies and job titles to the template
+    return render_template('register.html', 
+        locations=locations, 
+        companies=companies, 
+        job_titles=job_titles
+    )
 
+def validate_password_strength(password):
+    """Validate password meets minimum requirements"""
+    if len(password) < 8:
+        return False
+    if not re.search(r'[A-Z]', password):
+        return False
+    if not re.search(r'[a-z]', password):
+        return False
+    if not re.search(r'[0-9]', password):
+        return False
+    if not re.search(r'[^A-Za-z0-9]', password):
+        return False
+    return True
 
 from flask import session
 
@@ -1143,5 +1172,30 @@ def download_job_title_template():
     except FileNotFoundError:
         flash("Template file not found.", "danger")
         return redirect(url_for('main.settings'))
+
+@main.route('/profile')
+def user_profile():
+    if 'user_id' not in session:
+        flash('You need to log in first.', 'danger')
+        return redirect(url_for('main.home'))
+    
+    # Modify the query to remove the locations eager loading
+    user = User.query.options(
+        db.joinedload(User.company),
+        db.joinedload(User.job_title)
+        # Removed db.joinedload(User.locations) as it's causing issues
+    ).get(session['user_id'])
+    
+    if not user:
+        flash('User not found.', 'danger')
+        return redirect(url_for('main.home'))
+    
+    # Debug print
+    print(f"User company_id: {user.company_id}")
+    print(f"User company: {user.company}")
+    if user.company:
+        print(f"Company name: {user.company.name}")
+        
+    return render_template('user_profile.html', user=user)
 
 

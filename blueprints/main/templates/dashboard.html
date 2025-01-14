@@ -20,15 +20,12 @@
         <!-- Buttons for Access Card and Adding New Location -->
         <button class="btn" aria-label="Access Card">Access Card</button>
         <a
-  class="btn"
-  href="{{ url_for('main.add_location', user_id=user.id) }}"
-  aria-label="Add New Location"
->
-  Add New Location
-</a>
-
-          
-        </button>
+          class="btn"
+          href="{{ url_for('main.add_location', user_id=user.id) }}"
+          aria-label="Add New Location"
+        >
+          Add New Location
+        </a>
         <!-- Logout Button -->
         <a
           class="btn logout-btn"
@@ -37,10 +34,12 @@
         >
           Logout
         </a>
-        <!-- Display User's Name -->
-        <span class="user-name"
-          >{{ user.first_name }} {{ user.last_name }}</span
-        >
+        <!-- Display User's Name with Link to Profile -->
+        <a href="{{ url_for('main.user_profile') }}" class="user-name-link">
+          <span class="user-name"
+            >{{ user.first_name }} {{ user.last_name }}</span
+          >
+        </a>
       </div>
     </nav>
 
