@@ -453,22 +453,32 @@ def delete_user(id):
     flash('User deleted successfully!', 'success')
     return redirect(url_for('main.admin_dashboard'))
 
-@main.route('/reset_password/<int:id>', methods=['POST'])
-def reset_password(id):
-    # Fetch the user from the database
-    user = User.query.get_or_404(id)
-
-    # Reset the password to 'Password'
-    user.password = generate_password_hash('Password')
-
-    # Commit the changes
+@main.route('/change_password', methods=['POST'])
+def change_password():
+    if 'user_id' not in session:
+        flash('You need to log in first.', 'danger')
+        return redirect(url_for('main.home'))
+    
+    current_password = request.form.get('current_password')
+    new_password = request.form.get('new_password')
+    confirm_new_password = request.form.get('confirm_new_password')
+    
+    user = User.query.get(session['user_id'])
+    
+    if not user or not check_password_hash(user.password, current_password):
+        flash('Current password is incorrect.', 'danger')
+        return redirect(url_for('main.user_profile'))
+    
+    if new_password != confirm_new_password:
+        flash('New passwords do not match.', 'danger')
+        return redirect(url_for('main.user_profile'))
+    
+    # Update password
+    user.password = generate_password_hash(new_password)
     db.session.commit()
-
-    # Flash a success message
-    flash(f"Password has been reset to 'Password' for {user.first_name} {user.last_name}.", 'success')
-
-    # Redirect back to the admin dashboard
-    return redirect(url_for('main.admin_dashboard'))
+    
+    flash('Password updated successfully!', 'success')
+    return redirect(url_for('main.user_profile'))
 
 @main.route('/locations', methods=['GET'])
 def view_locations():
@@ -509,8 +519,11 @@ def add_location(user_id):
         else:
             flash('Location already assigned to this user.', 'warning')
 
-        # Redirect back to the admin dashboard
-        return redirect(url_for('main.dashboard'))
+        # Redirect to the appropriate dashboard based on user role
+        if user.role == 'Admin':
+            return redirect(url_for('main.admin_dashboard'))
+        else:
+            return redirect(url_for('main.dashboard'))
 
     # Render the template for the form
     return render_template('add_location.html', user=user, locations=locations)

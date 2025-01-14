@@ -18,9 +18,6 @@
           >Back to Dashboard</a
         >
         <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
-        <span class="user-name"
-          >{{ user.first_name }} {{ user.last_name }}</span
-        >
       </div>
     </nav>
 
@@ -30,63 +27,73 @@
       </div>
 
       <div class="profile-content">
-        <div class="profile-section">
-          <h2>Personal Information</h2>
-          <div class="profile-info">
-            <div class="info-group">
-              <label>First Name:</label>
-              <span>{{ user.first_name }}</span>
-            </div>
-            <div class="info-group">
-              <label>Last Name:</label>
-              <span>{{ user.last_name }}</span>
-            </div>
-            <div class="info-group">
-              <label>Email:</label>
-              <span>{{ user.email }}</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="profile-section">
-          <h2>Company Information</h2>
-          <div class="profile-info">
-            <div class="info-group">
-              <label>Company:</label>
-              <span
-                >{{ user.company.name if user.company else 'Not Assigned'
-                }}</span
-              >
-            </div>
-            <div class="info-group">
-              <label>Job Title:</label>
-              <span
-                >{{ user.job_title.name if user.job_title else 'Not Assigned'
-                }}</span
-              >
-            </div>
-            <div class="info-group">
-              <label>Location(s):</label>
-              <span>
-                {% for location in user.locations %} {{ location.name }}{% if
-                not loop.last %}, {% endif %} {% endfor %}
-              </span>
+        <div class="profile-grid">
+          <!-- Column 1: Personal Information -->
+          <div class="profile-section">
+            <h2>Personal Information</h2>
+            <div class="profile-info">
+              <div class="info-group">
+                <label>First Name:</label>
+                <span>{{ user.first_name }}</span>
+              </div>
+              <div class="info-group">
+                <label>Last Name:</label>
+                <span>{{ user.last_name }}</span>
+              </div>
+              <div class="info-group">
+                <label>Email:</label>
+                <span>{{ user.email }}</span>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="profile-section">
-          <h2>Account Status</h2>
-          <div class="profile-info">
-            <div class="info-group">
-              <label>Status:</label>
-              <span class="status-badge {{ user.status.lower() }}"
-                >{{ user.status }}</span
-              >
+          <!-- Column 2: Company Information -->
+          <div class="profile-section">
+            <h2>Company Information</h2>
+            <div class="profile-info">
+              <div class="info-group">
+                <label>Company:</label>
+                <span
+                  >{{ user.company.name if user.company else 'Not Assigned'
+                  }}</span
+                >
+              </div>
+              <div class="info-group">
+                <label>Job Title:</label>
+                <span
+                  >{{ user.job_title.name if user.job_title else 'Not Assigned'
+                  }}</span
+                >
+              </div>
             </div>
-            <div class="info-group">
-              <label>Role:</label>
-              <span>{{ user.role }}</span>
+          </div>
+
+          <!-- Column 3: Location & Status -->
+          <div class="profile-section">
+            <h2>Location & Status</h2>
+            <div class="profile-info">
+              <div class="info-group">
+                <label>Location(s):</label>
+                <span>
+                  {% if user.locations %} {% for location in user.locations %}
+                  {{ location.name }}{% if not loop.last %}, {% endif %} {%
+                  endfor %} {% else %} No locations assigned {% endif %}
+                </span>
+              </div>
+              <div class="info-group">
+                <label>Status:</label>
+                <span class="status-badge {{ user.status.lower() }}"
+                  >{{ user.status }}</span
+                >
+              </div>
+              <div class="info-group">
+                <button
+                  class="reset-password-btn"
+                  onclick="openResetPasswordModal()"
+                >
+                  Reset Password
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -95,5 +102,77 @@
 
     <!-- Footer Section -->
     <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+
+    <!-- Add Password Reset Modal -->
+    <div id="resetPasswordModal" class="modal">
+      <div class="modal-content">
+        <span class="close-modal" onclick="closeResetPasswordModal()"
+          >&times;</span
+        >
+        <h2>Reset Password</h2>
+        <form
+          id="resetPasswordForm"
+          method="POST"
+          action="{{ url_for('main.change_password') }}"
+        >
+          <div class="form-group">
+            <label for="current_password">Current Password:</label>
+            <input
+              type="password"
+              id="current_password"
+              name="current_password"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="new_password">New Password:</label>
+            <input
+              type="password"
+              id="new_password"
+              name="new_password"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="confirm_new_password">Confirm New Password:</label>
+            <input
+              type="password"
+              id="confirm_new_password"
+              name="confirm_new_password"
+              required
+            />
+          </div>
+          <div class="form-buttons">
+            <button type="submit" class="submit-btn">Update Password</button>
+            <button
+              type="button"
+              class="cancel-btn"
+              onclick="closeResetPasswordModal()"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Add JavaScript at the bottom of the file -->
+    <script>
+      function openResetPasswordModal() {
+        document.getElementById("resetPasswordModal").style.display = "block";
+      }
+
+      function closeResetPasswordModal() {
+        document.getElementById("resetPasswordModal").style.display = "none";
+      }
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        var modal = document.getElementById("resetPasswordModal");
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      };
+    </script>
   </body>
 </html>
