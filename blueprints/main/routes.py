@@ -2,7 +2,7 @@ from flask import render_template, request, redirect, url_for, flash, session
 from . import main  # Import the blueprint
 from werkzeug.security import generate_password_hash
 from database import db  # Import db from database.py
-from blueprints.main.models import User  # Import User model
+from blueprints.main.models import User  # Remove UserGroup import
 from flask import session
 from werkzeug.security import check_password_hash
 from .models import Qualification
@@ -23,6 +23,12 @@ from lxml import etree
 from .models import Module
 from blueprints.main.models import JobTitle  # Adjust the path if needed
 import re
+from datetime import datetime
+from blueprints.main.models import User, UserGroup
+from sqlalchemy.exc import OperationalError
+import time
+from contextlib import contextmanager
+from .models import UserGroup
 
 
 # Home route
@@ -1210,5 +1216,111 @@ def user_profile():
         print(f"Company name: {user.company.name}")
         
     return render_template('user_profile.html', user=user)
+
+@main.route('/reset_password/<int:id>', methods=['POST'])
+def reset_password(id):
+    try:
+        user = User.query.get_or_404(id)
+        # Reset password to default value
+        default_password = 'Password123'  # You may want to make this configurable
+        user.password = generate_password_hash(default_password)
+        db.session.commit()
+        flash(f'Password reset successfully for user {user.email}', 'success')
+    except Exception as e:
+        flash(f'Error resetting password: {str(e)}', 'danger')
+    
+    return redirect(url_for('main.admin_dashboard'))
+
+@main.route('/users', methods=['GET'])
+def users():
+    try:
+        # Basic query without filters
+        users = User.query.all()
+        
+        # Simple user data preparation
+        user_data = []
+        for user in users:
+            user_data.append({
+                'id': user.id,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email': user.email,
+                'role': user.role,
+                'status': user.status
+            })
+
+        return render_template(
+            'users.html',
+            users=user_data
+        )
+    except Exception as e:
+        current_app.logger.error(f"Error in users page: {e}")
+        return "An error occurred while loading the users page.", 500
+
+@main.route('/user_groups')
+def user_groups():
+    groups = UserGroup.query.all()
+    return render_template('user_groups.html', groups=groups)
+
+from contextlib import contextmanager
+from sqlalchemy.exc import OperationalError
+import time
+
+@contextmanager
+def session_scope():
+    """Provide a transactional scope around a series of operations."""
+    try:
+        yield db.session
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        raise
+    finally:
+        db.session.remove()
+
+@main.route('/create_group', methods=['POST'])
+def create_group():
+    for attempt in range(3):  # Try up to 3 times
+        try:
+            name = request.form.get('name')
+            description = request.form.get('description', '')
+            
+            if not name:
+                flash('Group name is required', 'danger')
+                return redirect(url_for('main.user_groups'))
+            
+            new_group = UserGroup(
+                name=name,
+                description=description
+            )
+            
+            db.session.add(new_group)
+            db.session.commit()
+            flash('Group created successfully!', 'success')
+            return redirect(url_for('main.user_groups'))
+            
+        except Exception as e:
+            db.session.rollback()
+            if attempt < 2:  # If not the last attempt
+                time.sleep(0.1)  # Wait 100ms before trying again
+                continue
+            current_app.logger.error(f'Error creating group: {str(e)}')
+            flash('Error creating group. Please try again.', 'danger')
+            break
+    
+    return redirect(url_for('main.user_groups'))
+
+@main.route('/delete_group/<int:id>', methods=['POST'])
+def delete_group(id):
+    try:
+        group = UserGroup.query.get_or_404(id)
+        db.session.delete(group)
+        db.session.commit()
+        flash('Group deleted successfully!', 'success')
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error deleting group: {str(e)}', 'danger')
+    
+    return redirect(url_for('main.user_groups'))
 
 
