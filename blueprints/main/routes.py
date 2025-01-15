@@ -1323,4 +1323,28 @@ def delete_group(id):
     
     return redirect(url_for('main.user_groups'))
 
+@main.route('/edit_group/<int:id>', methods=['POST'])
+def edit_group(id):
+    try:
+        group = UserGroup.query.get_or_404(id)
+        name = request.form.get('name')
+        description = request.form.get('description', '')
+        
+        if not name:
+            flash('Group name is required', 'danger')
+            return redirect(url_for('main.user_groups'))
+        
+        group.name = name
+        group.description = description
+        
+        db.session.commit()
+        flash('Group updated successfully!', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f'Error updating group: {str(e)}')
+        flash('Error updating group. Please try again.', 'danger')
+    
+    return redirect(url_for('main.user_groups'))
+
 
