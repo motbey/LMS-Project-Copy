@@ -108,3 +108,24 @@ class JobTitle(db.Model):
 
     def __repr__(self):
         return f"<JobTitle {self.name}>"
+
+
+# ==========================
+# User Group Model
+# ==========================
+class UserGroup(db.Model):
+    __tablename__ = 'user_group'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def __repr__(self):
+        return f'<UserGroup {self.name}>'
+
+# Association table
+user_group_association = db.Table('user_group_association',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('group_id', db.Integer, db.ForeignKey('user_group.id'))
+)

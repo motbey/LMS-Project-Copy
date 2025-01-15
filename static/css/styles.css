@@ -1261,3 +1261,46 @@ form {
 .view-profile:hover {
   color: white;
 }
+
+/* Header Styles */
+.dashboard-header {
+  background-color: #1a237e !important; /* Dark blue background */
+  padding: 1rem 2rem !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Button Styles - All buttons same blue color */
+.header-buttons .btn {
+  background-color: #0D6EFD !important; /* Bootstrap primary blue */
+  color: white !important;
+  padding: 0.5rem 1.2rem !important;
+  border-radius: 4px !important;
+  text-decoration: none !important;
+  transition: all 0.3s ease !important;
+  font-weight: 500 !important;
+  border: none !important;
+}
+
+/* Hover effect for all buttons */
+.header-buttons .btn:hover {
+  background-color: #0B5ED7 !important; /* Slightly darker blue on hover */
+  transform: translateY(-1px);
+}
+
+/* Active state */
+.header-buttons .btn.active {
+  box-shadow: 0 0 0 2px white !important;
+}
+
+/* Optional: Keep logout button different */
+.header-buttons .logout-btn {
+  background-color: #DC3545 !important; /* Bootstrap danger red */
+}
+
+.header-buttons .logout-btn:hover {
+  background-color: #BB2D3B !important;
+}

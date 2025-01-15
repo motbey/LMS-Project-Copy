@@ -10,7 +10,10 @@ from blueprints.main import main as main_blueprint
 
 # Create Flask app
 basedir = os.path.abspath(os.path.dirname(__file__))
-app = Flask(__name__, instance_path=os.path.join(basedir, 'instance'))
+app = Flask(__name__, 
+    static_url_path='/static',
+    static_folder='static',
+    instance_path=os.path.join(basedir, 'instance'))
 
 # Configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'instance', 'lms.db')}"
