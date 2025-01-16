@@ -29,6 +29,10 @@ from sqlalchemy.exc import OperationalError
 import time
 from contextlib import contextmanager
 from .models import UserGroup
+from .models import User, Company, JobTitle, Location, UserGroup, GroupRule, UserGroupCriteria, UserGroupMember  # Add UserGroupMember
+from .models import UserGroupCriteria  # Add UserGroupCriteria to imports
+import json
+from sqlalchemy import func
 
 
 # Home route
@@ -324,7 +328,6 @@ def admin_dashboard():
     except Exception as e:
         current_app.logger.error(f"Error in admin_dashboard: {e}")
         return "An error occurred while loading the admin dashboard.", 500
-
 
 
 
@@ -1259,7 +1262,12 @@ def users():
 
 @main.route('/user_groups')
 def user_groups():
-    groups = UserGroup.query.all()
+    groups = UserGroup.query\
+        .outerjoin(UserGroupMember)\
+        .add_columns(func.count(UserGroupMember.user_id).label('user_count'))\
+        .group_by(UserGroup)\
+        .all()
+    
     return render_template('user_groups.html', groups=groups)
 
 from contextlib import contextmanager
@@ -1346,5 +1354,129 @@ def edit_group(id):
         flash('Error updating group. Please try again.', 'danger')
     
     return redirect(url_for('main.user_groups'))
+
+@main.route('/build_group/<int:id>', methods=['GET'])
+def build_group(id):
+    # Get the group
+    group = UserGroup.query.get_or_404(id)
+    
+    # Get existing criteria
+    criteria = UserGroupCriteria.query.filter_by(group_id=id).all()
+    
+    # Get all possible options for dropdowns
+    roles = ['User', 'Admin', 'Sub Admin', 'Security']
+    companies = [{'id': c.id, 'name': c.name} for c in Company.query.all()]
+    locations = [{'id': l.id, 'name': l.name} for l in Location.query.all()]
+    job_titles = [{'id': j.id, 'name': j.name} for j in JobTitle.query.all()]
+    
+    # Convert criteria to dictionary for display
+    existing_criteria = [{
+        'id': c.id,
+        'type': c.criteria_type,
+        'value': c.criteria_value,
+        'text': c.criteria_value  # Add this for display purposes
+    } for c in criteria]
+    
+    print("Debug - Roles:", roles)  # Debug print
+    print("Debug - Companies:", companies)  # Debug print
+    print("Debug - Locations:", locations)  # Debug print
+    print("Debug - Job Titles:", job_titles)  # Debug print
+    print("Debug - Existing Criteria:", existing_criteria)  # Debug print
+    
+    return render_template('build_group.html', 
+        group=group,
+        existing_criteria=existing_criteria,
+        roles=roles,
+        companies=companies,
+        locations=locations,
+        job_titles=job_titles
+    )
+
+@main.route('/save_group_rules/<int:id>', methods=['POST'])
+def save_group_rules(id):
+    try:
+        # Get the group
+        group = UserGroup.query.get_or_404(id)
+        current_app.logger.debug(f"Processing group: {group.name}")
+        
+        # Get the rules data from the form
+        rules_data = request.form.get('savedRules')
+        current_app.logger.debug(f"Rules data received: {rules_data}")
+        
+        if not rules_data:
+            flash('No rules were provided', 'warning')
+            return redirect(url_for('main.build_group', id=id))
+            
+        rules = json.loads(rules_data)
+        current_app.logger.debug(f"Parsed rules: {rules}")
+        
+        # Start a transaction
+        db.session.begin_nested()
+        
+        # Delete existing criteria
+        UserGroupCriteria.query.filter_by(group_id=id).delete()
+        
+        # Clear existing group members
+        UserGroupMember.query.filter_by(group_id=id).delete()
+        
+        # Add new criteria
+        for rule in rules:
+            new_criteria = UserGroupCriteria(
+                group_id=id,
+                criteria_type=rule['type'],
+                criteria_value=rule['value']
+            )
+            db.session.add(new_criteria)
+        
+        # Find matching users based on the rules
+        matching_users = User.query
+        
+        for rule in rules:
+            current_app.logger.debug(f"Applying rule: {rule}")
+            if rule['type'] == 'role':
+                matching_users = matching_users.filter(User.role == rule['value'])
+            elif rule['type'] == 'company':
+                matching_users = matching_users.filter(User.company_id == rule['value'])
+            elif rule['type'] == 'job_title':
+                matching_users = matching_users.filter(User.job_title_id == rule['value'])
+            elif rule['type'] == 'location':
+                matching_users = matching_users.join(User.locations).filter(Location.id == rule['value'])
+        
+        # Log the SQL query being generated
+        current_app.logger.debug(f"SQL Query: {matching_users}")
+        
+        # Add matching users to the group
+        matched_users = matching_users.all()
+        current_app.logger.debug(f"Found matching users: {[u.id for u in matched_users]}")
+        
+        for user in matched_users:
+            new_member = UserGroupMember(user_id=user.id, group_id=id)
+            db.session.add(new_member)
+            current_app.logger.debug(f"Added user {user.id} to group {id}")
+        
+        # Commit all changes
+        db.session.commit()
+        flash('Group rules and members updated successfully!', 'success')
+        return redirect(url_for('main.build_group', id=id))
+        
+    except Exception as e:
+        db.session.rollback()
+        current_app.logger.error(f"Error in save_group_rules: {str(e)}")
+        flash('Error saving rules. Please try again.', 'danger')
+        return redirect(url_for('main.build_group', id=id))
+
+@main.route('/group/<int:id>/users')
+def view_group_users(id):
+    # Get the group
+    group = UserGroup.query.get_or_404(id)
+    
+    # Get all users in the group
+    users = User.query\
+        .join(UserGroupMember, User.id == UserGroupMember.user_id)\
+        .filter(UserGroupMember.group_id == id)\
+        .all()
+    
+    # Changed template path to match your structure
+    return render_template('view_group_users.html', group=group, users=users)
 
 
