@@ -129,3 +129,76 @@ user_group_association = db.Table('user_group_association',
     db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
     db.Column('group_id', db.Integer, db.ForeignKey('user_group.id'))
 )
+
+# ==========================
+# Group Rule Model
+# ==========================
+class GroupRule(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('user_group.id'), nullable=False)
+    type = db.Column(db.String(50), nullable=False)  # 'role', 'company', 'job_title', 'location'
+    value = db.Column(db.String(50), nullable=False)  # ID or value of the selected item
+    
+    group = db.relationship('UserGroup', backref=db.backref('rules', lazy=True))
+
+# ==========================
+# User Group Criteria Model
+# ==========================
+class UserGroupCriteria(db.Model):
+    __tablename__ = 'user_group_criteria'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('user_group.id', ondelete='CASCADE'), nullable=False)
+    criteria_type = db.Column(db.String(50), nullable=False)  # 'role', 'company', 'location', 'job_title', 'code'
+    criteria_value = db.Column(db.String(50), nullable=False)
+    
+    group = db.relationship('UserGroup', backref=db.backref('criteria', lazy=True))
+
+# ==========================
+# User Group Member Model
+# ==========================
+class UserGroupMember(db.Model):
+    __tablename__ = 'user_group_member'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    group_id = db.Column(db.Integer, db.ForeignKey('user_group.id'))
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
+    
+    # Relationships
+    group = db.relationship('UserGroup', backref=db.backref('members', lazy=True))
+    user = db.relationship('User', backref=db.backref('group_memberships', lazy=True))
+
+    def __repr__(self):
+        return f'<UserGroupMember {self.group_id}:{self.user_id}>'
+
+# ==========================
+# Group Qualification Model
+# ==========================
+class GroupQualification(db.Model):
+    __tablename__ = 'group_qualification'
+    
+    group_id = db.Column(db.Integer, db.ForeignKey('user_group.id'), primary_key=True)
+    qualification_id = db.Column(db.Integer, db.ForeignKey('qualification.id'), primary_key=True)
+    assigned_date = db.Column(db.DateTime, default=datetime.utcnow)
+    expiry_date = db.Column(db.Date)
+    status = db.Column(db.String(20), default='Active')
+    
+    # Relationships
+    group = db.relationship('UserGroup', backref=db.backref('group_qualifications', lazy=True))
+    qualification = db.relationship('Qualification', backref=db.backref('group_qualifications', lazy=True))
+
+# ==========================
+# Group Module Model
+# ==========================
+class GroupModule(db.Model):
+    __tablename__ = 'group_module'
+    
+    group_id = db.Column(db.Integer, db.ForeignKey('user_group.id'), primary_key=True)
+    module_id = db.Column(db.Integer, db.ForeignKey('module.id'), primary_key=True)
+    assigned_date = db.Column(db.DateTime, default=datetime.utcnow)
+    required_completion_date = db.Column(db.DateTime, nullable=True)
+    status = db.Column(db.String(20), default='Active')
+
+    # Relationships
+    group = db.relationship('UserGroup', backref=db.backref('group_modules', lazy=True))
+    Module = db.relationship('Module', backref=db.backref('group_modules', lazy=True))

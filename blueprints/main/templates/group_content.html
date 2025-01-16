@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Group Content - {{ group.name }}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <style>
+      .content-section {
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+      }
+
+      .admin-table th {
+        background-color: #f8f9fa;
+        padding: 12px;
+        text-align: left;
+        border-bottom: 2px solid #dee2e6;
+      }
+
+      .admin-table td {
+        padding: 12px;
+        border-bottom: 1px solid #dee2e6;
+      }
+
+      .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+      }
+
+      .modal-container {
+        background: white;
+        padding: 20px;
+        border-radius: 5px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        min-width: 400px;
+        z-index: 1001;
+      }
+
+      .show {
+        display: block;
+      }
+
+      .status-active {
+        color: #28a745;
+        font-weight: 500;
+      }
+
+      .status-inactive {
+        color: #dc3545;
+        font-weight: 500;
+      }
+
+      .table thead tr {
+        background-color: #2c3e50;
+        color: white;
+        font-weight: bold;
+      }
+
+      .table th {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 2px solid #1a2632;
+      }
+
+      .table td {
+        padding: 10px;
+        border-bottom: 1px solid #ddd;
+      }
+
+      .status-active {
+        color: #27ae60;
+        font-weight: bold;
+      }
+
+      .status-inactive {
+        color: #e74c3c;
+        font-weight: bold;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+
+      .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 5px;
+      }
+
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .close:hover {
+        color: black;
+      }
+
+      .modal-buttons {
+        margin-top: 20px;
+        text-align: right;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <nav class="dashboard-header">
+      <h2>Content for {{ group.name }}</h2>
+      <div class="header-buttons">
+        <a class="btn" href="{{ url_for('main.user_groups') }}"
+          >Back to Groups</a
+        >
+        <a class="btn" href="{{ url_for('main.users') }}">Users</a>
+        <a class="btn" href="{{ url_for('main.settings') }}">Settings</a>
+        <a class="btn" href="{{ url_for('main.content') }}">Content</a>
+        <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <section class="dashboard-section">
+      <div class="content-container">
+        <!-- Modules Section -->
+        <div class="content-section">
+          <div class="section-header">
+            <h2>Modules</h2>
+            <button class="btn btn-primary" onclick="showModuleModal()">
+              Assign Module
+            </button>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr style="background-color: #2c3e50; color: white">
+                <th>Module Name</th>
+                <th>Description</th>
+                <th>Assigned Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for module in assigned_modules %}
+              <tr>
+                <td>{{ module.Module.name }}</td>
+                <td>{{ module.Module.description }}</td>
+                <td>{{ module.assigned_date.strftime('%Y-%m-%d') }}</td>
+                <td>
+                  <span class="status-{{ module.status.lower() }}"
+                    >{{ module.status }}</span
+                  >
+                </td>
+                <td>
+                  <button
+                    class="btn btn-danger btn-sm"
+                    onclick="confirmRemoveModule('{{ group.id }}', '{{ module.Module.id }}')"
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Qualifications Section -->
+        <div class="content-section">
+          <div class="section-header">
+            <h2>Qualifications</h2>
+            <button class="btn btn-primary" onclick="showQualificationModal()">
+              Assign Qualification
+            </button>
+          </div>
+
+          <table class="table">
+            <thead>
+              <tr style="background-color: #2c3e50; color: white">
+                <th>Qualification Name</th>
+                <th>Assigned Date</th>
+                <th>Expiry Date</th>
+                <th>Valid Until</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for qual in assigned_qualifications %}
+              <tr>
+                <td>{{ qual.qualification.name }}</td>
+                <td>{{ qual.assigned_date.strftime('%Y-%m-%d') }}</td>
+                <td>
+                  {{ qual.expiry_date.strftime('%Y-%m-%d') if qual.expiry_date
+                  else 'N/A' }}
+                </td>
+                <td>
+                  {{ qual.expiry_date.strftime('%Y-%m-%d') if qual.expiry_date
+                  else 'No expiry' }}
+                </td>
+                <td>
+                  <span class="status-{{ qual.status.lower() }}"
+                    >{{ qual.status }}</span
+                  >
+                </td>
+                <td>
+                  <button
+                    class="btn btn-danger btn-sm"
+                    onclick="confirmRemoveQualification('{{ group.id }}', '{{ qual.qualification.id }}')"
+                  >
+                    Remove
+                  </button>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+
+    <script>
+      function showQualificationModal() {
+        const modal = document.getElementById("qualificationModal");
+        if (modal) {
+          modal.style.display = "block";
+        }
+      }
+
+      function hideQualificationModal() {
+        const modal = document.getElementById("qualificationModal");
+        if (modal) {
+          modal.style.display = "none";
+        }
+      }
+
+      // Close modal when clicking outside
+      window.onclick = function (event) {
+        const modal = document.getElementById("qualificationModal");
+        if (modal && event.target === modal) {
+          hideQualificationModal();
+        }
+      };
+
+      function confirmRemoveQualification(groupId, qualificationId) {
+        if (confirm("Are you sure you want to remove this qualification?")) {
+          fetch(`/group/${groupId}/remove_qualification/${qualificationId}`, {
+            method: "POST",
+          })
+            .then((response) => {
+              if (response.ok) {
+                window.location.reload();
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            });
+        }
+      }
+
+      function showModuleModal() {
+        const modal = document.getElementById("moduleModal");
+        if (modal) {
+          modal.style.display = "block";
+        }
+      }
+
+      function hideModuleModal() {
+        const modal = document.getElementById("moduleModal");
+        if (modal) {
+          modal.style.display = "none";
+        }
+      }
+
+      function confirmRemoveModule(groupId, moduleId) {
+        if (confirm("Are you sure you want to remove this module?")) {
+          fetch(`/group/${groupId}/remove_module/${moduleId}`, {
+            method: "POST",
+          })
+            .then((response) => {
+              if (response.ok) {
+                window.location.reload();
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+            });
+        }
+      }
+
+      // Add this to your existing window.onclick handler
+      window.onclick = function (event) {
+        const qualModal = document.getElementById("qualificationModal");
+        const moduleModal = document.getElementById("moduleModal");
+
+        if (event.target === qualModal) {
+          hideQualificationModal();
+        }
+        if (event.target === moduleModal) {
+          hideModuleModal();
+        }
+      };
+    </script>
+
+    <!-- Qualification Modal -->
+    <div id="qualificationModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="hideQualificationModal()">&times;</span>
+        <h3>Assign Qualification</h3>
+        <form
+          action="{{ url_for('main.assign_qualification', group_id=group.id) }}"
+          method="POST"
+        >
+          <div class="form-group">
+            <label for="qualification_id">Select Qualification:</label>
+            <select
+              name="qualification_id"
+              id="qualification_id"
+              required
+              class="form-control"
+            >
+              <option value="">Select a qualification...</option>
+              {% for qual in all_qualifications %}
+              <option value="{{ qual.id }}">{{ qual.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="modal-buttons">
+            <button
+              type="button"
+              class="btn"
+              onclick="hideQualificationModal()"
+            >
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Assign</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Module Modal -->
+    <div id="moduleModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="hideModuleModal()">&times;</span>
+        <h3>Assign Module</h3>
+        <form
+          action="{{ url_for('main.assign_module', group_id=group.id) }}"
+          method="POST"
+        >
+          <div class="form-group">
+            <label for="module_id">Select Module:</label>
+            <select
+              name="module_id"
+              id="module_id"
+              required
+              class="form-control"
+            >
+              <option value="">Select a module...</option>
+              {% for module in all_modules %}
+              <option value="{{ module.id }}">{{ module.name }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="modal-buttons">
+            <button type="button" class="btn" onclick="hideModuleModal()">
+              Cancel
+            </button>
+            <button type="submit" class="btn btn-primary">Assign</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </body>
+</html>

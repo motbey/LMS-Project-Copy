@@ -1,39 +1,37 @@
-from flask import render_template, request, redirect, url_for, flash, session
+from flask import render_template, request, redirect, url_for, flash, session, current_app, jsonify, send_from_directory
 from . import main  # Import the blueprint
-from werkzeug.security import generate_password_hash
 from database import db  # Import db from database.py
-from blueprints.main.models import User  # Remove UserGroup import
-from flask import session
-from werkzeug.security import check_password_hash
-from .models import Qualification
-from .models import Location # Import Location and User models
-from flask import jsonify  # Import jsonify for JSON responses
-from math import ceil
-import pandas as pd  # Add this at the top if not already imported
-from flask import request, flash, redirect, url_for
+from .models import (  # Import from local models.py using relative import
+    User, 
+    Company, 
+    JobTitle, 
+    Location, 
+    UserGroup, 
+    GroupRule, 
+    UserGroupCriteria, 
+    UserGroupMember, 
+    Qualification, 
+    GroupQualification,
+    Module,
+    GroupModule
+)
+from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-import os
-from blueprints.main.models import Company  # Import the correct model
+from datetime import datetime
+from sqlalchemy import func
+from sqlalchemy.exc import OperationalError
 import logging
-logging.basicConfig(level=logging.DEBUG)
-from flask import send_from_directory
-from flask import current_app
+import os
+import sys
+import pandas as pd
 import zipfile
 from lxml import etree
-from .models import Module
-from blueprints.main.models import JobTitle  # Adjust the path if needed
 import re
-from datetime import datetime
-from blueprints.main.models import User, UserGroup
-from sqlalchemy.exc import OperationalError
+import json
 import time
 from contextlib import contextmanager
-from .models import UserGroup
-from .models import User, Company, JobTitle, Location, UserGroup, GroupRule, UserGroupCriteria, UserGroupMember  # Add UserGroupMember
-from .models import UserGroupCriteria  # Add UserGroupCriteria to imports
-import json
-from sqlalchemy import func
 
+logging.basicConfig(level=logging.DEBUG)
 
 # Home route
 @main.route('/')
@@ -567,7 +565,6 @@ ALLOWED_EXTENSIONS = {'xls', 'xlsx'}
 # Helper function to check if the file has a valid extension
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
 
 
 
@@ -1478,5 +1475,132 @@ def view_group_users(id):
     
     # Changed template path to match your structure
     return render_template('view_group_users.html', group=group, users=users)
+
+@main.route('/group/<int:id>')
+def group_content(id):
+    group = UserGroup.query.get_or_404(id)
+    assigned_qualifications = GroupQualification.query.filter_by(group_id=id).all()
+    all_qualifications = Qualification.query.all()
+    
+    # Add these lines
+    assigned_modules = GroupModule.query.filter_by(group_id=id).all()
+    all_modules = Module.query.all()
+    
+    return render_template('group_content.html',
+                         group=group,
+                         assigned_qualifications=assigned_qualifications,
+                         all_qualifications=all_qualifications,
+                         assigned_modules=assigned_modules,
+                         all_modules=all_modules)
+
+@main.route('/group/<int:group_id>/assign_qualification', methods=['POST'])
+def assign_qualification(group_id):
+    try:
+        qualification_id = request.form.get('qualification_id')
+        
+        # First delete any existing records for this qualification/group combination
+        existing = GroupQualification.query.filter_by(
+            group_id=group_id,
+            qualification_id=qualification_id
+        ).first()
+        
+        if existing:
+            db.session.delete(existing)
+            db.session.commit()
+        
+        # Create new assignment
+        new_assignment = GroupQualification(
+            group_id=group_id,
+            qualification_id=qualification_id,
+            assigned_date=datetime.now(),
+            status='Active'
+        )
+        
+        db.session.add(new_assignment)
+        db.session.commit()
+        
+        flash('Qualification assigned successfully!', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error assigning qualification: {str(e)}', 'danger')
+    
+    return redirect(url_for('main.group_content', id=group_id))
+
+@main.route('/group/<int:group_id>/remove_qualification/<int:qualification_id>', methods=['POST'])
+def remove_qualification(group_id, qualification_id):
+    try:
+        # Find the group qualification record
+        group_qual = GroupQualification.query.filter_by(
+            group_id=group_id,
+            qualification_id=qualification_id
+        ).first()
+
+        if group_qual:
+            # Actually delete the record from the database
+            db.session.delete(group_qual)
+            db.session.commit()
+            return jsonify({'success': True}), 200
+        else:
+            return jsonify({'error': 'Qualification not found'}), 404
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@main.route('/group/<int:group_id>/assign_module', methods=['POST'])
+def assign_module(group_id):
+    try:
+        module_id = request.form.get('module_id')
+        
+        # First delete any existing records for this module/group combination
+        existing = GroupModule.query.filter_by(
+            group_id=group_id,
+            module_id=module_id
+        ).first()
+        
+        if existing:
+            db.session.delete(existing)
+            db.session.commit()
+        
+        # Create new assignment
+        new_assignment = GroupModule(
+            group_id=group_id,
+            module_id=module_id,
+            assigned_date=datetime.now(),
+            status='Active'
+        )
+        
+        db.session.add(new_assignment)
+        db.session.commit()
+        
+        flash('Module assigned successfully!', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error assigning module: {str(e)}', 'danger')
+    
+    return redirect(url_for('main.group_content', id=group_id))
+
+@main.route('/group/<int:group_id>/remove_module/<int:module_id>', methods=['POST'])
+def remove_module(group_id, module_id):
+    try:
+        # Find the group module record
+        group_module = GroupModule.query.filter_by(
+            group_id=group_id,
+            module_id=module_id
+        ).first()
+
+        if group_module:
+            # Delete the record from the database
+            db.session.delete(group_module)
+            db.session.commit()
+            return jsonify({'success': True}), 200
+        else:
+            return jsonify({'error': 'Module not found'}), 404
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
 
 
