@@ -202,3 +202,32 @@ class GroupModule(db.Model):
     # Relationships
     group = db.relationship('UserGroup', backref=db.backref('group_modules', lazy=True))
     Module = db.relationship('Module', backref=db.backref('group_modules', lazy=True))
+
+# Add these model classes to your existing models.py file
+from datetime import datetime
+
+class UserModule(db.Model):
+    __tablename__ = 'user_modules'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    module_id = db.Column(db.Integer, db.ForeignKey('module.id'), nullable=False)
+    assigned_date = db.Column(db.DateTime, default=datetime.utcnow)
+    completion_date = db.Column(db.DateTime)
+    status = db.Column(db.String(20), default='Assigned')
+
+    # Add these relationships
+    user = db.relationship('User', backref=db.backref('user_modules', lazy=True))
+    module = db.relationship('Module', backref=db.backref('user_modules', lazy=True))
+
+class UserQualification(db.Model):
+    __tablename__ = 'user_qualifications'
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    qualification_id = db.Column(db.Integer, db.ForeignKey('qualification.id'), nullable=False)
+    assigned_date = db.Column(db.DateTime, default=datetime.utcnow)
+    completion_date = db.Column(db.DateTime)
+    status = db.Column(db.String(20), default='Assigned')
+
+    # Add these relationships
+    user = db.relationship('User', backref=db.backref('user_qualifications', lazy=True))
+    qualification = db.relationship('Qualification', backref=db.backref('user_qualifications', lazy=True))

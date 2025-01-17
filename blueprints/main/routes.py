@@ -13,7 +13,9 @@ from .models import (  # Import from local models.py using relative import
     Qualification, 
     GroupQualification,
     Module,
-    GroupModule
+    GroupModule,
+    UserModule, 
+    UserQualification
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -1234,28 +1236,116 @@ def reset_password(id):
 @main.route('/users', methods=['GET'])
 def users():
     try:
-        # Basic query without filters
-        users = User.query.all()
+        current_app.logger.debug("Fetching users from database")
         
-        # Simple user data preparation
+        # Get page number and sorting parameters
+        page = request.args.get('page', 1, type=int)
+        sort = request.args.get('sort', 'id')
+        order = request.args.get('order', 'asc')
+        per_page = 10
+
+        # Get filter parameters
+        filters = {
+            'id': request.args.get('id', '').strip(),
+            'first_name': request.args.get('first_name', '').strip(),
+            'last_name': request.args.get('last_name', '').strip(),
+            'email': request.args.get('email', '').strip(),
+            'job_title': request.args.get('job_title', '').strip(),
+            'company': request.args.get('company', '').strip(),
+            'location': request.args.get('location', '').strip(),
+            'role': request.args.get('role', '').strip(),
+            'status': request.args.get('status', '').strip()
+        }
+
+        # Build base query with all necessary joins
+        query = User.query\
+            .outerjoin(User.company)\
+            .outerjoin(User.job_title)\
+            .outerjoin(User.locations)
+
+        # Apply filters
+        if filters['id']:
+            query = query.filter(User.id == filters['id'])
+        if filters['first_name']:
+            query = query.filter(User.first_name.ilike(f"%{filters['first_name']}%"))
+        if filters['last_name']:
+            query = query.filter(User.last_name.ilike(f"%{filters['last_name']}%"))
+        if filters['email']:
+            query = query.filter(User.email.ilike(f"%{filters['email']}%"))
+        if filters['company']:
+            query = query.filter(Company.name == filters['company'])
+        if filters['job_title']:
+            query = query.filter(JobTitle.name == filters['job_title'])
+        if filters['location']:
+            query = query.filter(Location.name == filters['location'])
+        if filters['role']:
+            query = query.filter(User.role == filters['role'])
+        if filters['status']:
+            query = query.filter(User.status == filters['status'])
+
+        # Apply sorting
+        if sort == 'id':
+            query = query.order_by(User.id.desc() if order == 'desc' else User.id.asc())
+        elif sort == 'first_name':
+            query = query.order_by(User.first_name.desc() if order == 'desc' else User.first_name.asc())
+        elif sort == 'last_name':
+            query = query.order_by(User.last_name.desc() if order == 'desc' else User.last_name.asc())
+        elif sort == 'email':
+            query = query.order_by(User.email.desc() if order == 'desc' else User.email.asc())
+        elif sort == 'job_title':
+            query = query.order_by(JobTitle.name.desc() if order == 'desc' else JobTitle.name.asc())
+        elif sort == 'company':
+            query = query.order_by(Company.name.desc() if order == 'desc' else Company.name.asc())
+        elif sort == 'role':
+            query = query.order_by(User.role.desc() if order == 'desc' else User.role.asc())
+        elif sort == 'status':
+            query = query.order_by(User.status.desc() if order == 'desc' else User.status.asc())
+
+        # Get dropdown data
+        companies = Company.query.order_by(Company.name).all()
+        locations = Location.query.order_by(Location.name).all()
+        job_titles = JobTitle.query.order_by(JobTitle.name).all()
+        roles = ['User', 'Admin', 'Sub Admin', 'Security']
+
+        # Execute query with pagination
+        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+        users = pagination.items
+
+        # Prepare user data with proper relationship handling
         user_data = []
         for user in users:
+            # Get locations as a comma-separated string
+            location_names = ', '.join([loc.name for loc in user.locations]) if user.locations else 'No Locations'
+            
             user_data.append({
                 'id': user.id,
                 'first_name': user.first_name,
                 'last_name': user.last_name,
                 'email': user.email,
+                'job_title': user.job_title.name if user.job_title else 'None',
+                'company': user.company.name if user.company else 'None',
+                'locations': location_names,
                 'role': user.role,
                 'status': user.status
             })
 
         return render_template(
             'users.html',
-            users=user_data
+            users=user_data,
+            pagination=pagination,
+            filters=filters,
+            companies=[c.name for c in companies],
+            locations=[l.name for l in locations],
+            job_titles=[j.name for j in job_titles],
+            roles=roles,
+            sort=sort,
+            order=order
         )
+
     except Exception as e:
-        current_app.logger.error(f"Error in users page: {e}")
-        return "An error occurred while loading the users page.", 500
+        current_app.logger.error(f"Error in users page: {str(e)}")
+        flash('An error occurred while loading users.', 'danger')
+        return redirect(url_for('main.home')), 500
 
 @main.route('/user_groups')
 def user_groups():
@@ -1602,5 +1692,54 @@ def remove_module(group_id, module_id):
     except Exception as e:
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
+
+@main.route('/assign_content/<int:id>', methods=['GET', 'POST'])
+def assign_content(id):
+    user = User.query.get_or_404(id)
+    
+    # Get all available modules and qualifications
+    all_modules = Module.query.all()
+    all_qualifications = Qualification.query.all()
+    
+    # Get user's currently assigned modules and qualifications with full details
+    user_modules = UserModule.query.filter_by(user_id=id).all()
+    user_qualifications = UserQualification.query.filter_by(user_id=id).all()
+    
+    if request.method == 'POST':
+        try:
+            # Handle module assignments
+            module_ids = request.form.getlist('modules')
+            # Remove all current module assignments
+            UserModule.query.filter_by(user_id=id).delete()
+            # Add new module assignments
+            for module_id in module_ids:
+                new_assignment = UserModule(user_id=id, module_id=int(module_id))
+                db.session.add(new_assignment)
+            
+            # Handle qualification assignments
+            qualification_ids = request.form.getlist('qualifications')
+            # Remove all current qualification assignments
+            UserQualification.query.filter_by(user_id=id).delete()
+            # Add new qualification assignments
+            for qual_id in qualification_ids:
+                new_assignment = UserQualification(user_id=id, qualification_id=int(qual_id))
+                db.session.add(new_assignment)
+            
+            db.session.commit()
+            flash('Content assignments updated successfully!', 'success')
+            return redirect(url_for('main.assign_content', id=id))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error assigning content: {str(e)}', 'danger')
+    
+    return render_template('assign_content.html', 
+                         user=user,
+                         all_modules=all_modules,
+                         all_qualifications=all_qualifications,
+                         assigned_modules=[am.module_id for am in user_modules],
+                         assigned_qualifications=[aq.qualification_id for aq in user_qualifications],
+                         user_modules=user_modules,
+                         user_qualifications=user_qualifications)
 
 
