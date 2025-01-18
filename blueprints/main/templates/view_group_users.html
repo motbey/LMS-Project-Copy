@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Group Users - User Management</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <!-- Header -->
+    <nav class="dashboard-header">
+      <h2>Users in {{ group.name }}</h2>
+      <div class="header-buttons">
+        <a class="btn" href="{{ url_for('main.user_groups') }}"
+          >Back to Groups</a
+        >
+        <a class="btn" href="{{ url_for('main.users') }}">Users</a>
+        <a class="btn" href="{{ url_for('main.settings') }}">Settings</a>
+        <a class="btn" href="{{ url_for('main.content') }}">Content</a>
+        <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <section class="dashboard-section">
+      <div class="table-responsive">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Company</th>
+              <th>Job Title</th>
+              <th>Role</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% if users %} {% for user in users %}
+            <tr>
+              <td>{{ user.id }}</td>
+              <td>{{ user.first_name }} {{ user.last_name }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.company.name if user.company else 'N/A' }}</td>
+              <td>{{ user.job_title.name if user.job_title else 'N/A' }}</td>
+              <td>{{ user.role }}</td>
+              <td>{{ user.status }}</td>
+            </tr>
+            {% endfor %} {% else %}
+            <tr>
+              <td colspan="7" class="text-center">No users in this group</td>
+            </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+  </body>
+</html>

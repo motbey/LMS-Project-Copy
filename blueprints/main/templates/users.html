@@ -1,35 +1,302 @@
-{% extends "base.html" %} {% block title %}Users - ANZ LMS{% endblock %} {%
-block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-  <h3>Users</h3>
-  <a href="{{ url_for('main.user_groups') }}" class="btn btn-primary"
-    >User Groups</a
-  >
-</div>
-<div class="table-responsive">
-  <table class="table">
-    <thead>
-      <tr>
-        <th>ID</th>
-        <th>First Name</th>
-        <th>Last Name</th>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for user in users %}
-      <tr>
-        <td>{{ user.id }}</td>
-        <td>{{ user.first_name }}</td>
-        <td>{{ user.last_name }}</td>
-        <td>{{ user.email }}</td>
-        <td>{{ user.role }}</td>
-        <td>{{ user.status }}</td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
-</div>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Users - ANZ LMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+    <script>
+        function toggleFilters() {
+            var filterSection = document.getElementById("filter-section");
+            filterSection.classList.toggle("hidden");
+        }
+    </script>
+    <style>
+        /* Add dropdown styles */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+            z-index: 1000;
+            right: 0;
+            margin-top: 5px;
+            border: 1px solid #eaeaea;
+        }
+
+        .dropdown-content a,
+        .dropdown-content button,
+        .dropdown-content form {
+            display: block;
+            width: 100%;
+            padding: 10px 16px;
+            text-align: left;
+            background: none;
+            border: none;
+            color: #333;
+            text-decoration: none;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+
+        .dropdown-content a:hover,
+        .dropdown-content button:hover {
+            background-color: #f8f9fa;
+            color: #0056b3;
+        }
+
+        .dropdown-content > *:not(:last-child) {
+            border-bottom: 1px solid #eaeaea;
+        }
+
+        .dropdown-content .text-danger {
+            color: #dc3545;
+        }
+
+        .dropdown-content .text-danger:hover {
+            background-color: #fff5f5;
+            color: #dc3545;
+        }
+
+        .dropdown-content.show {
+            display: block !important;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        footer {
+            background-color: #2c3e50;  /* Same color as header */
+            color: white;
+            text-align: center;
+            padding: 1rem;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* Add this to ensure content doesn't get hidden behind fixed footer */
+        body {
+            margin-bottom: 60px; /* Height of footer plus some spacing */
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <nav class="dashboard-header">
+        <h2>Users Management</h2>
+        <div class="header-buttons">
+            <a class="btn" href="{{ url_for('main.user_groups') }}">User Groups</a>
+            <a class="btn" href="{{ url_for('main.admin_dashboard') }}">Admin Dashboard</a>
+            <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
+        </div>
+    </nav>
+
+    <section class="dashboard-section">
+        <!-- Filter Button -->
+        <button class="btn filter-btn" onclick="toggleFilters()">Filter</button>
+
+        <!-- Filter Section -->
+        <div id="filter-section" class="hidden">
+            <form method="GET" action="{{ url_for('main.users') }}">
+                <div class="filter-container">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>ID:</label>
+                            <input type="text" name="id" value="{{ filters.id }}" placeholder="Keyword" />
+                        </div>
+                        <div class="filter-group">
+                            <label>First Name:</label>
+                            <input type="text" name="first_name" value="{{ filters.first_name }}" placeholder="Keyword" />
+                        </div>
+                        <div class="filter-group">
+                            <label>Last Name:</label>
+                            <input type="text" name="last_name" value="{{ filters.last_name }}" placeholder="Keyword" />
+                        </div>
+                        <div class="filter-group">
+                            <label>Email:</label>
+                            <input type="text" name="email" value="{{ filters.email }}" placeholder="Keyword" />
+                        </div>
+                    </div>
+
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label>Company:</label>
+                            <select name="company">
+                                <option value="">All</option>
+                                {% for company in companies %}
+                                <option value="{{ company }}" {% if filters.company == company %}selected{% endif %}>
+                                    {{ company }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Job Title:</label>
+                            <select name="job_title">
+                                <option value="">All</option>
+                                {% for job in job_titles %}
+                                <option value="{{ job }}" {% if filters.job_title == job %}selected{% endif %}>
+                                    {{ job }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Location:</label>
+                            <select name="location">
+                                <option value="">All</option>
+                                {% for location in locations %}
+                                <option value="{{ location }}" {% if filters.location == location %}selected{% endif %}>
+                                    {{ location }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Role:</label>
+                            <select name="role">
+                                <option value="">All</option>
+                                {% for role in roles %}
+                                <option value="{{ role }}" {% if filters.role == role %}selected{% endif %}>
+                                    {{ role }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="filter-group">
+                            <label>Status:</label>
+                            <select name="status">
+                                <option value="">All</option>
+                                <option value="Active" {% if filters.status == 'Active' %}selected{% endif %}>Active</option>
+                                <option value="Inactive" {% if filters.status == 'Inactive' %}selected{% endif %}>Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="filter-actions">
+                        <button type="submit" class="btn">Search</button>
+                        <a href="{{ url_for('main.users') }}" class="btn">Reset Filter</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- User Table -->
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th><a href="{{ url_for('main.users', sort='id', order='asc' if sort != 'id' or order == 'desc' else 'desc') }}" class="sortable">ID <span>&#x2195;</span></a></th>
+                    <th><a href="{{ url_for('main.users', sort='first_name', order='asc' if sort != 'first_name' or order == 'desc' else 'desc') }}" class="sortable">First Name <span>&#x2195;</span></a></th>
+                    <th><a href="{{ url_for('main.users', sort='last_name', order='asc' if sort != 'last_name' or order == 'desc' else 'desc') }}" class="sortable">Last Name <span>&#x2195;</span></a></th>
+                    <th><a href="{{ url_for('main.users', sort='email', order='asc' if sort != 'email' or order == 'desc' else 'desc') }}" class="sortable">Email <span>&#x2195;</span></a></th>
+                    <th><a href="{{ url_for('main.users', sort='job_title', order='asc' if sort != 'job_title' or order == 'desc' else 'desc') }}" class="sortable">Job Title <span>&#x2195;</span></a></th>
+                    <th><a href="{{ url_for('main.users', sort='company', order='asc' if sort != 'company' or order == 'desc' else 'desc') }}" class="sortable">Company <span>&#x2195;</span></a></th>
+                    <th>Location</th>
+                    <th><a href="{{ url_for('main.users', sort='role', order='asc' if sort != 'role' or order == 'desc' else 'desc') }}" class="sortable">Role <span>&#x2195;</span></a></th>
+                    <th><a href="{{ url_for('main.users', sort='status', order='asc' if sort != 'status' or order == 'desc' else 'desc') }}" class="sortable">Status <span>&#x2195;</span></a></th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.id }}</td>
+                    <td>{{ user.first_name }}</td>
+                    <td>{{ user.last_name }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>{{ user.job_title }}</td>
+                    <td>{{ user.company }}</td>
+                    <td>{% if user.locations %}{{ user.locations }}{% else %}No Locations{% endif %}</td>
+                    <td>{{ user.role }}</td>
+                    <td>{{ user.status }}</td>
+                    <td>
+                        <div class="dropdown">
+                            <button class="btn btn-primary btn-sm" onclick="toggleDropdown(event, '{{ user.id }}')">
+                                Actions ▼
+                            </button>
+                            <div id="dropdown-{{ user.id }}" class="dropdown-content">
+                                <a href="{{ url_for('main.edit_user', id=user.id) }}" class="btn-sm">
+                                    Edit
+                                </a>
+                                <a href="{{ url_for('main.assign_content', id=user.id) }}" class="btn-sm">
+                                    Assign Content
+                                </a>
+                                <form method="POST" action="{{ url_for('main.reset_password', id=user.id) }}" 
+                                      class="inline-form" onsubmit="return confirm('Are you sure you want to reset the password?')">
+                                    <button type="submit" class="btn-sm">Reset Password</button>
+                                </form>
+                                <form method="POST" action="{{ url_for('main.delete_user', id=user.id) }}" 
+                                      class="inline-form" onsubmit="return confirm('Are you sure you want to delete this user?')">
+                                    <button type="submit" class="btn-sm text-danger">Delete</button>
+                                </form>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Pagination Controls -->
+        <div class="pagination">
+            {% if pagination.has_prev %}
+            <a href="{{ url_for('main.users', page=pagination.prev_num) }}" class="btn">Previous</a>
+            {% endif %}
+            <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
+            {% if pagination.has_next %}
+            <a href="{{ url_for('main.users', page=pagination.next_num) }}" class="btn">Next</a>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>© 2025 ConPass, All Rights Reserved.</footer>
+
+    <!-- Add JavaScript for dropdown functionality -->
+    <script>
+        function toggleDropdown(event, userId) {
+            event.stopPropagation();
+            const dropdownContent = document.getElementById(`dropdown-${userId}`);
+            
+            // Close all other dropdowns
+            document.querySelectorAll('.dropdown-content').forEach(dropdown => {
+                if (dropdown !== dropdownContent && dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            });
+            
+            dropdownContent.classList.toggle('show');
+        }
+
+        // Close dropdown when clicking outside
+        window.onclick = function(event) {
+            if (!event.target.matches('.btn-primary')) {
+                document.querySelectorAll('.dropdown-content').forEach(dropdown => {
+                    if (dropdown.classList.contains('show')) {
+                        dropdown.classList.remove('show');
+                    }
+                });
+            }
+        }
+    </script>
+</body>
+</html>

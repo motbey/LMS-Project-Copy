@@ -1,12 +1,11 @@
 import os
-from flask import Flask
-from database import db  # Import db from database.py
-from flask_migrate import Migrate  # Import Flask-Migrate
+from datetime import datetime
+from flask import Flask, g, session
+from flask_migrate import Migrate
+from database import db
 from blueprints.main import main as main_blueprint
-
-
-
-
+from blueprints.main.auth import auth as auth_blueprint
+from blueprints.main.models import User
 
 # Create Flask app
 basedir = os.path.abspath(os.path.dirname(__file__))
@@ -28,6 +27,16 @@ migrate = Migrate(app, db)
 
 # Register Blueprints
 app.register_blueprint(main_blueprint)
+app.register_blueprint(auth_blueprint)
+
+@app.before_request
+def before_request():
+    if 'user_id' in session:
+        user = User.query.get(session['user_id'])
+        if user:
+            user.last_seen = datetime.utcnow()
+            user.is_active = True
+            db.session.commit()
 
 if __name__ == '__main__':
     app.run(debug=True)

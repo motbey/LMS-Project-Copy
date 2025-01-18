@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-# Specify the template folder relative to this file
+# Create the blueprint
 main = Blueprint('main', __name__, template_folder='templates')
 
 from . import routes

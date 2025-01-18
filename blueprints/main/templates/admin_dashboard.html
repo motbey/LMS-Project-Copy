@@ -3,226 +3,341 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Admin Dashboard - ANZ LMS</title>
+    <title>Admin Dashboard - ConPass LMS</title>
     <link
       rel="stylesheet"
       href="{{ url_for('static', filename='css/styles.css') }}"
     />
-    <script>
-      // JavaScript to toggle filter visibility
-      function toggleFilters() {
-        var filterSection = document.getElementById("filter-section");
-        filterSection.classList.toggle("hidden");
+    <!-- Add Font Awesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      .dashboard-container {
+        padding: 20px;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
       }
-    </script>
+
+      .stat-card {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+      }
+
+      .stat-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .stat-title {
+        color: #666;
+        font-size: 1.1em;
+      }
+
+      .stat-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+      }
+
+      .stat-number {
+        font-size: 2em;
+        font-weight: bold;
+        color: #2c3e50;
+        margin: 10px 0;
+      }
+
+      .stat-description {
+        color: #666;
+        font-size: 0.9em;
+      }
+
+      .quick-actions {
+        background: white;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .action-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      .action-button {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        background: #f8f9fa;
+        border: none;
+        border-radius: 6px;
+        color: #2c3e50;
+        text-decoration: none;
+        transition: all 0.2s;
+      }
+
+      .action-button:hover {
+        background: #e9ecef;
+        transform: translateY(-2px);
+      }
+
+      .action-button i {
+        margin-right: 10px;
+        font-size: 1.2em;
+      }
+
+      /* Color variations for stat cards */
+      .users {
+        background-color: #4299e1;
+      }
+      .modules {
+        background-color: #48bb78;
+      }
+      .qualifications {
+        background-color: #ed8936;
+      }
+      .groups {
+        background-color: #805ad5;
+      }
+
+      .stat-details {
+        display: flex;
+        gap: 15px;
+        margin: 10px 0;
+        font-size: 0.9em;
+      }
+
+      .stat-detail {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+      }
+
+      .stat-detail.active i {
+        color: #48bb78; /* Green color for active */
+      }
+
+      .stat-detail.inactive i {
+        color: #e53e3e; /* Red color for inactive */
+      }
+
+      .stat-detail i {
+        font-size: 0.8em;
+      }
+
+      .stat-card.clickable,
+      a.stat-card {
+        text-decoration: none;
+        color: inherit;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .stat-card.clickable:hover,
+      a.stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+      }
+
+      .stat-card.clickable::after,
+      a.stat-card::after {
+        content: "\f054"; /* Font Awesome chevron-right icon */
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        font-size: 0.8em;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+
+      .stat-card.clickable:hover::after,
+      a.stat-card:hover::after {
+        opacity: 0.5;
+      }
+
+      /* Add these tooltip styles */
+      [data-tooltip] {
+        position: relative;
+      }
+
+      [data-tooltip]:before {
+        content: attr(data-tooltip);
+        position: absolute;
+        top: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        padding: 8px 12px;
+        background-color: #030037;
+        color: white;
+        font-size: 14px;
+        border-radius: 4px;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease, visibility 0.2s ease;
+        margin-top: 10px;
+      }
+
+      [data-tooltip]:hover:before {
+        opacity: 1;
+        visibility: visible;
+      }
+
+      /* Add/update footer styles */
+      footer {
+        background-color: #030037;
+        color: white;
+        text-align: center;
+        padding: 15px 0;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        left: 0;
+      }
+
+      /* Add this to create space above footer so content doesn't get hidden */
+      body {
+        margin-bottom: 60px; /* Should be larger than footer height */
+        min-height: 100vh;
+        position: relative;
+      }
+    </style>
   </head>
   <body>
     <!-- Header -->
     <nav class="dashboard-header">
       <h2>Admin Dashboard</h2>
       <div class="header-buttons">
-        <a class="btn" href="{{ url_for('main.users') }}">Users</a>
-        <a class="btn" href="{{ url_for('main.settings') }}">Settings</a>
-        <a class="btn" href="{{ url_for('main.content') }}">Content</a>
-        <a class="btn logout-btn" href="{{ url_for('main.logout') }}">Logout</a>
+        <a href="{{ url_for('main.settings') }}" class="btn">Settings</a>
+        <a href="{{ url_for('main.content') }}" class="btn">Content</a>
+        <a href="{{ url_for('main.logout') }}" class="btn logout-btn">Logout</a>
       </div>
     </nav>
 
-    <!-- Admin Content -->
-    <section class="dashboard-section">
-      <h3>Admin Controls</h3>
+    <!-- Statistics Cards -->
+    <div class="dashboard-container">
+      <a
+        href="{{ url_for('main.users') }}"
+        class="stat-card"
+        data-tooltip="Select to Manage Users"
+        style="text-decoration: none; cursor: pointer; position: relative"
+      >
+        <div class="stat-header">
+          <span class="stat-title">Users</span>
+          <span class="stat-icon users"><i class="fas fa-users"></i></span>
+        </div>
+        <div class="stat-number">{{ total_users }}</div>
+        <div class="stat-details">
+          <span class="stat-detail active">
+            <i class="fas fa-circle"></i> {{ active_users }} Active
+          </span>
+          <span class="stat-detail inactive">
+            <i class="fas fa-circle"></i> {{ inactive_users }} Inactive
+          </span>
+        </div>
+        <div class="stat-description">Total users in the system</div>
+      </a>
 
-      <!-- Filter Button -->
-      <button class="btn filter-btn" onclick="toggleFilters()">Filter</button>
-
-      <!-- Filter Section -->
-      <div id="filter-section" class="hidden"> <!-- Ensure hidden class is applied initially -->
-        <form method="GET" action="{{ url_for('main.admin_dashboard') }}">
-          <div class="filter-container">
-            <div class="filter-row">
-              <div class="filter-group">
-                <label>ID:</label>
-                <input type="text" name="id" value="{{ filters.id }}" placeholder="Keyword" />
-              </div>
-              <div class="filter-group">
-                <label>First Name:</label>
-                <input type="text" name="first_name" value="{{ filters.first_name }}" placeholder="Keyword" />
-              </div>
-              <div class="filter-group">
-                <label>Last Name:</label>
-                <input type="text" name="last_name" value="{{ filters.last_name }}" placeholder="Keyword" />
-              </div>
-              <div class="filter-group">
-                <label>Email:</label>
-                <input type="text" name="email" value="{{ filters.email }}" placeholder="Keyword" />
-              </div>
-            </div>
-
-            <div class="filter-row">
-              <!-- Dropdown for Company -->
-              <div class="filter-group">
-                <label>Company:</label>
-                <select name="company">
-                  <option value="">All</option>
-                  {% for company in companies %}
-                  <option value="{{ company }}" {% if filters.company == company %}selected{% endif %}>
-                    {{ company }}
-                  </option>
-                  {% endfor %}
-                </select>
-              </div>
-
-              <!-- Dropdown for Job Title -->
-              <div class="filter-group">
-                <label>Job Title:</label>
-                <select name="job_title">
-                  <option value="">All</option>
-                  {% for job in job_titles %}
-                  <option value="{{ job }}" {% if filters.job_title == job %}selected{% endif %}>
-                    {{ job }}
-                  </option>
-                  {% endfor %}
-                </select>
-              </div>
-
-              <!-- Dropdown for Location -->
-              <div class="filter-group">
-                <label>Location:</label>
-                <select name="location">
-                  <option value="">All</option>
-                  {% for location in locations %}
-                  <option value="{{ location }}" {% if filters.location == location %}selected{% endif %}>
-                    {{ location }}
-                  </option>
-                  {% endfor %}
-                </select>
-              </div>
-
-              <!-- Dropdown for Role -->
-              <div class="filter-group">
-                <label>Role:</label>
-                <select name="role">
-                  <option value="">All</option>
-                  {% for role in roles %}
-                  <option value="{{ role }}" {% if filters.role == role %}selected{% endif %}>
-                    {{ role }}
-                  </option>
-                  {% endfor %}
-                </select>
-              </div>
-
-              <!-- Dropdown for Status -->
-              <div class="filter-group">
-                <label>Status:</label>
-                <select name="status">
-                  <option value="">All</option>
-                  <option value="Active" {% if filters.status == 'Active' %}selected{% endif %}>Active</option>
-                  <option value="Inactive" {% if filters.status == 'Inactive' %}selected{% endif %}>Inactive</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="filter-actions">
-              <button type="submit" class="btn">Search</button>
-              <a href="{{ url_for('main.admin_dashboard') }}" class="btn">Reset Filter</a>
-            </div>
-          </div>
-        </form>
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-title">User Activity</span>
+          <span class="stat-icon modules"
+            ><i class="fas fa-chart-line"></i
+          ></span>
+        </div>
+        <div class="stat-number">{{ active_sessions }}</div>
+        <div class="stat-details">
+          <span class="stat-detail active">
+            <i class="fas fa-clock"></i> {{ last_24h_users }} Last 24h
+          </span>
+          <span class="stat-detail">
+            <i class="fas fa-calendar"></i> {{ last_7d_users }} Last 7d
+          </span>
+        </div>
+        <div class="stat-description">Currently active users</div>
       </div>
 
-      <!-- User Table -->
-      <table class="admin-table">
-        <thead>
-          <tr>
-            <th>
-              <a href="{{ url_for('main.admin_dashboard', sort='id', order='asc' if sort != 'id' or order == 'desc' else 'desc') }}" class="sortable">
-                ID <span>&#x2195;</span>
-              </a>
-            </th>
-            <th>
-              <a href="{{ url_for('main.admin_dashboard', sort='first_name', order='asc' if sort != 'first_name' or order == 'desc' else 'desc') }}" class="sortable">
-                First Name <span>&#x2195;</span>
-              </a>
-            </th>
-            <th>
-              <a href="{{ url_for('main.admin_dashboard', sort='last_name', order='asc' if sort != 'last_name' or order == 'desc' else 'desc') }}" class="sortable">
-                Last Name <span>&#x2195;</span>
-              </a>
-            </th>
-            <th>
-              <a href="{{ url_for('main.admin_dashboard', sort='email', order='asc' if sort != 'email' or order == 'desc' else 'desc') }}" class="sortable">
-                Email <span>&#x2195;</span>
-              </a>
-            </th>
-            <th>
-              <a href="{{ url_for('main.admin_dashboard', sort='job_title', order='asc' if sort != 'job_title' or order == 'desc' else 'desc') }}" class="sortable">
-                Job Title <span>&#x2195;</span>
-              </a>
-            </th>
-            <th>
-              <a href="{{ url_for('main.admin_dashboard', sort='company', order='asc' if sort != 'company' or order == 'desc' else 'desc') }}" class="sortable">
-                Company <span>&#x2195;</span>
-              </a>
-            </th>
-            <th>Location</th>
-            <th>
-              <a href="{{ url_for('main.admin_dashboard', sort='role', order='asc' if sort != 'role' or order == 'desc' else 'desc') }}" class="sortable">
-                Role <span>&#x2195;</span>
-              </a>
-            </th>
-            <th>
-              <a href="{{ url_for('main.admin_dashboard', sort='status', order='asc' if sort != 'status' or order == 'desc' else 'desc') }}" class="sortable">
-                Status <span>&#x2195;</span>
-              </a>
-            </th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for user in users %}
-          <tr>
-            <td>{{ user.id }}</td>
-            <td>{{ user.first_name }}</td>
-            <td>{{ user.last_name }}</td>
-            <td>{{ user.email }}</td>
-            <td>{{ user.job_title }}</td> <!-- Job Title Column -->
-            <td>{{ user.company }}</td>
-            <td>
-              {% if user.locations %}
-                {{ user.locations }}
-              {% else %}
-                No Locations
-              {% endif %}
-            </td>
-            <td>{{ user.role }}</td>
-            <td>{{ user.status }}</td>
-            <td>
-              <a href="{{ url_for('main.edit_user', id=user.id) }}" class="btn btn-success btn-sm">Edit</a>
-              <form method="POST" action="{{ url_for('main.delete_user', id=user.id) }}" class="inline-form" onsubmit="return confirm('Are you sure?')">
-                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
-              </form>
-              <form method="POST" action="{{ url_for('main.reset_password', id=user.id) }}" class="inline-form" onsubmit="return confirm('Are you sure?')">
-                <button type="submit" class="btn btn-warning btn-sm">Reset Password</button>
-              </form>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-      <!-- Pagination Controls -->
-      <div class="pagination">
-        {% if pagination.has_prev %}
-          <a href="{{ url_for('main.admin_dashboard', page=pagination.prev_num) }}" class="btn">Previous</a>
-        {% endif %}
-        <span>Page {{ pagination.page }} of {{ pagination.pages }}</span>
-        {% if pagination.has_next %}
-          <a href="{{ url_for('main.admin_dashboard', page=pagination.next_num) }}" class="btn">Next</a>
-        {% endif %}
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-title">Qualifications</span>
+          <span class="stat-icon qualifications"
+            ><i class="fas fa-certificate"></i
+          ></span>
+        </div>
+        <div class="stat-number">{{ total_qualifications }}</div>
+        <div class="stat-description">Active qualifications</div>
       </div>
-    </section>
+
+      <div class="stat-card">
+        <div class="stat-header">
+          <span class="stat-title">User Groups</span>
+          <span class="stat-icon groups"
+            ><i class="fas fa-layer-group"></i
+          ></span>
+        </div>
+        <div class="stat-number">{{ total_groups }}</div>
+        <div class="stat-description">Active user groups</div>
+      </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <h3>Quick Actions</h3>
+      <div class="action-grid">
+        <a href="{{ url_for('main.create_user') }}" class="action-button">
+          <i class="fas fa-user-plus"></i>
+          Add New User
+        </a>
+        <a href="{{ url_for('main.create_module') }}" class="action-button">
+          <i class="fas fa-plus-circle"></i>
+          Create Module
+        </a>
+        <a
+          href="{{ url_for('main.create_qualification') }}"
+          class="action-button"
+        >
+          <i class="fas fa-award"></i>
+          Add Qualification
+        </a>
+        <a href="{{ url_for('main.user_groups') }}" class="action-button">
+          <i class="fas fa-users-cog"></i>
+          Manage Groups
+        </a>
+        <a href="{{ url_for('main.reports') }}" class="action-button">
+          <i class="fas fa-chart-bar"></i>
+          View Reports
+        </a>
+        <a href="{{ url_for('main.system_settings') }}" class="action-button">
+          <i class="fas fa-cog"></i>
+          System Settings
+        </a>
+      </div>
+    </div>
 
     <!-- Footer -->
-    <footer>© 2024 ANZ LMS. All Rights Reserved.</footer>
+    <footer>
+      <div class="footer-content">© 2025 ConPass, All Rights Reserved.</div>
+    </footer>
   </body>
 </html>

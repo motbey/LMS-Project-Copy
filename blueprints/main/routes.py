@@ -19,7 +19,7 @@ from .models import (  # Import from local models.py using relative import
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy import func
 from sqlalchemy.exc import OperationalError
 import logging
@@ -207,127 +207,38 @@ def login():
 # Admin Dashboard Route
 @main.route('/admin', methods=['GET', 'POST'])
 def admin_dashboard():
-    try:
-        # Retrieve filter values from form inputs
-        filters = {
-            'id': request.args.get('id', '').strip(),
-            'first_name': request.args.get('first_name', '').strip(),
-            'last_name': request.args.get('last_name', '').strip(),
-            'email': request.args.get('email', '').strip(),
-            'job_title': request.args.get('job_title', '').strip(),
-            'company': request.args.get('company', '').strip(),
-            'location': request.args.get('location', '').strip(),
-            'role': request.args.get('role', '').strip(),
-            'status': request.args.get('status', '').strip()
-        }
-
-        # Sorting parameters
-        sort = request.args.get('sort', 'id')  # Default sort by ID
-        order = request.args.get('order', 'asc')  # Default order is ascending
-
-        # Query distinct values for dropdowns
-        companies = [c.name for c in Company.query.all()]  # Fetch all company names
-        dropdown_locations = [location.name for location in Location.query.all()]  # Location names
-        job_titles = (
-        db.session.query(JobTitle.name)
-    .join(User, User.job_title_id == JobTitle.id)
-    .distinct()
-    .all()
-)
-  # Distinct job titles
-        job_titles.sort()  # Sort alphabetically
-        all_roles = ['User', 'Admin', 'Sub Admin', 'Security']
-        roles = list(set(all_roles + [r[0] for r in db.session.query(User.role).distinct()]))
-        roles.sort()
-
-        # Query the database with filters
-        query = User.query
-        if filters['id']:
-            query = query.filter(User.id == filters['id'])
-        if filters['first_name']:
-            query = query.filter(User.first_name.ilike(f"%{filters['first_name']}%"))
-        if filters['last_name']:
-            query = query.filter(User.last_name.ilike(f"%{filters['last_name']}%"))
-        if filters['email']:
-            query = query.filter(User.email.ilike(f"%{filters['email']}%"))
-        if filters['job_title']:
-            query = query.filter(User.job_title.ilike(f"%{filters['job_title']}%"))
-        if filters['company']:
-            company = Company.query.filter_by(name=filters['company']).first()
-            if company:
-                query = query.filter(User.company_id == company.id)
-        if filters['location']:
-            query = query.join(User.locations).filter(Location.name.ilike(f"%{filters['location']}%"))
-        if filters['role']:
-            query = query.filter(User.role == filters['role'])
-        if filters['status']:
-            query = query.filter(User.status == filters['status'])
-
-        # Apply sorting
-        if sort == 'id':
-            query = query.order_by(User.id.desc() if order == 'desc' else User.id.asc())
-        elif sort == 'first_name':
-            query = query.order_by(User.first_name.desc() if order == 'desc' else User.first_name.asc())
-        elif sort == 'last_name':
-            query = query.order_by(User.last_name.desc() if order == 'desc' else User.last_name.asc())
-        elif sort == 'email':
-            query = query.order_by(User.email.desc() if order == 'desc' else User.email.asc())
-        elif sort == 'job_title':
-         query = query.order_by(User.job_title_id.desc() if order == 'desc' else User.job_title_id.asc())
-
-        elif sort == 'company':
-            query = query.order_by(User.company_id.desc() if order == 'desc' else User.company_id.asc())
-        elif sort == 'status':
-            query = query.order_by(User.status.desc() if order == 'desc' else User.status.asc())
-
-        # Pagination
-        page = request.args.get('page', 1, type=int)
-        per_page = request.args.get('per_page', 10, type=int)
-        pagination = query.paginate(page=page, per_page=per_page, error_out=False)
-        users = pagination.items
-
-        # Prepare data for template
-        user_data = []
-        for user in users:
-            # Get user locations
-            locations = [location.name for location in user.locations]
-            location_str = ", ".join(locations)
-
-            # Get company name
-            company_name = None  # Default to None if no company is assigned
-            if user.company_id:  # Check if the user has a company assigned
-                company = Company.query.get(user.company_id)  # Fetch the company object
-                company_name = company.name if company else None  # Extract the name if company exists
-
-            # Append user data to the list
-            user_data.append({
-                'id': user.id,
-                'first_name': user.first_name,
-                'last_name': user.last_name,
-                'email': user.email,
-                'job_title': user.job_title.name if user.job_title else None,
-                'company': company_name,
-                'locations': location_str,
-                'role': user.role,
-                'status': user.status
-            })
-
-        # Render the template
-        return render_template(
-            'admin_dashboard.html',
-            users=user_data,
-            filters=filters,
-            companies=companies,
-            locations=dropdown_locations,
-            job_titles=job_titles,
-            roles=roles,
-            pagination=pagination,
-            sort=sort,
-            order=order
-        )
-    except Exception as e:
-        current_app.logger.error(f"Error in admin_dashboard: {e}")
-        return "An error occurred while loading the admin dashboard.", 500
+    # Get current time
+    now = datetime.utcnow()
+    
+    # Calculate time thresholds
+    last_24h = now - timedelta(hours=24)
+    last_7d = now - timedelta(days=7)
+    
+    # Get user statistics
+    total_users = User.query.count()
+    active_users = User.query.filter_by(status='Active').count()
+    inactive_users = User.query.filter_by(status='Inactive').count()
+    
+    # Get active sessions (users who were active in the last 15 minutes)
+    active_sessions = User.query.filter(User.last_seen >= now - timedelta(minutes=15)).count()
+    
+    # Get users active in last 24h and 7d
+    last_24h_users = User.query.filter(User.last_seen >= last_24h).count()
+    last_7d_users = User.query.filter(User.last_seen >= last_7d).count()
+    
+    # Get other statistics
+    total_qualifications = Qualification.query.count()
+    total_groups = UserGroup.query.count()
+    
+    return render_template('admin_dashboard.html',
+                         total_users=total_users,
+                         active_users=active_users,
+                         inactive_users=inactive_users,
+                         active_sessions=active_sessions,
+                         last_24h_users=last_24h_users,
+                         last_7d_users=last_7d_users,
+                         total_qualifications=total_qualifications,
+                         total_groups=total_groups)
 
 
 
@@ -1741,5 +1652,55 @@ def assign_content(id):
                          assigned_qualifications=[aq.qualification_id for aq in user_qualifications],
                          user_modules=user_modules,
                          user_qualifications=user_qualifications)
+
+@main.route('/create_module', methods=['GET', 'POST'])
+def create_module():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description')
+        
+        try:
+            new_module = Module(
+                name=name,
+                description=description
+            )
+            db.session.add(new_module)
+            db.session.commit()
+            flash('Module created successfully!', 'success')
+            return redirect(url_for('main.admin_dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating module: {str(e)}', 'danger')
+    
+    return render_template('create_module.html')
+
+@main.route('/create_qualification', methods=['GET', 'POST'])
+def create_qualification():
+    if request.method == 'POST':
+        name = request.form.get('name')
+        description = request.form.get('description')
+        
+        try:
+            new_qualification = Qualification(
+                name=name,
+                description=description
+            )
+            db.session.add(new_qualification)
+            db.session.commit()
+            flash('Qualification created successfully!', 'success')
+            return redirect(url_for('main.admin_dashboard'))
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error creating qualification: {str(e)}', 'danger')
+    
+    return render_template('create_qualification.html')
+
+@main.route('/reports')
+def reports():
+    return render_template('reports.html')
+
+@main.route('/system_settings')
+def system_settings():
+    return render_template('system_settings.html')
 
 

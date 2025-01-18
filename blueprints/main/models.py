@@ -27,6 +27,8 @@ class User(db.Model):
     status = db.Column(db.String(50))
     company_id = db.Column(db.Integer, db.ForeignKey('company.id'))
     company = db.relationship('Company', backref='users')
+    last_seen = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
+    last_login = db.Column(db.DateTime, nullable=True, default=datetime.utcnow)
  # Matches the 'company_id' field
 
 

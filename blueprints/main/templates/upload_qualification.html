@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Upload Qualification</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h2>Upload Qualification: {{ qualification.name }}</h2>
+      <form method="POST" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="file">Select File</label>
+          <input type="file" name="file" required />
+        </div>
+        <button type="submit" class="btn btn-primary">Upload</button>
+        <a href="{{ url_for('main.dashboard') }}" class="btn">Cancel</a>
+      </form>
+    </div>
+  </body>
+</html>

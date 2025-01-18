@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{ module.name }}</title>
+    <script src="{{ url_for('static', filename='js/scorm_api_wrapper.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/scorm_api.js') }}"></script>
+    <script>
+      // Initialize SCORM API
+      var api = new SCORMAPIWrapper({
+        moduleId: {{ module.id }},
+        userId: {{ current_user.id }},
+        url: "{{ url_for('scorm_api.scorm_api', module_id=module.id) }}"
+      });
+
+      // Set initial status if not already set
+      window.onload = function() {
+        var currentStatus = api.LMSGetValue("cmi.core.lesson_status");
+        if (!currentStatus || currentStatus === "") {
+          api.LMSSetValue("cmi.core.lesson_status", "incomplete");
+          api.LMSSetValue("cmi.core.score.raw", "0");
+          api.LMSCommit();
+        }
+      };
+
+      // SCORM 1.2 constants needed by the content
+      window.LESSON_STATUS_PASSED = "passed";
+      window.INTERACTION_RESULT_CORRECT = "correct";
+      window.INTERACTION_RESULT_WRONG = "wrong";
+
+      // Expose all required functions directly on window
+      window.CommitData = function() {
+          console.log("CommitData called");
+          return api.LMSCommit();
+      };
+
+      window.ConcedeControl = function() {
+          console.log("ConcedeControl called");
+          return "true";
+      };
+
+      window.CreateResponseIdentifier = function(short, long) {
+          console.log("CreateResponseIdentifier called", short, long);
+          return { short: short, long: long };
+      };
+
+      window.Finish = function() {
+          console.log("Finish called");
+          return api.LMSFinish();
+      };
+
+      window.GetDataChunk = function() {
+          console.log("GetDataChunk called");
+          return api.LMSGetValue("cmi.suspend_data") || "";
+      };
+
+      window.GetStatus = function() {
+          console.log("GetStatus called");
+          return api.LMSGetValue("cmi.core.lesson_status");
+      };
+
+      window.MatchingResponse = function(source, target) {
+          console.log("MatchingResponse called", source, target);
+          return { source: source, target: target };
+      };
+
+      window.RecordFillInInteraction = function(id, response, correct, correctResponse, description, weighting, latency, objectiveId) {
+          console.log("RecordFillInInteraction called", arguments);
+          return "true";
+      };
+
+      window.RecordMatchingInteraction = function(id, response, correct, correctResponse, description, weighting, latency, objectiveId) {
+          console.log("RecordMatchingInteraction called", arguments);
+          return "true";
+      };
+
+      window.RecordMultipleChoiceInteraction = function(id, response, correct, correctResponse, description, weighting, latency, objectiveId) {
+          console.log("RecordMultipleChoiceInteraction called", arguments);
+          return "true";
+      };
+
+      window.ResetStatus = function() {
+          console.log("ResetStatus called");
+          // Only reset if not already completed and score is not 100
+          var currentStatus = api.LMSGetValue("cmi.core.lesson_status");
+          var currentScore = api.LMSGetValue("cmi.core.score.raw");
+
+          if (currentStatus !== "completed" && currentScore !== "100") {
+              api.LMSSetValue("cmi.core.lesson_status", "incomplete");
+              api.LMSCommit();
+          }
+          return "true";
+      };
+
+      window.SetBookmark = function(location) {
+          console.log("SetBookmark called", location);
+          return api.LMSSetValue("cmi.core.lesson_location", location);
+      };
+
+      window.SetDataChunk = function(data) {
+          console.log("SetDataChunk called", data);
+          return api.LMSSetValue("cmi.suspend_data", data);
+      };
+
+      window.SetFailed = function() {
+          console.log("SetFailed called");
+          return api.LMSSetValue("cmi.core.lesson_status", "failed");
+      };
+
+      window.SetPassed = function() {
+          console.log("SetPassed called");
+          return api.LMSSetValue("cmi.core.lesson_status", "passed");
+      };
+
+      window.SetReachedEnd = function() {
+          console.log("SetReachedEnd called");
+          api.LMSSetValue("cmi.core.lesson_status", "completed");
+          api.LMSCommit();
+          return "true";
+      };
+
+      window.SetScore = function(score, max, min) {
+          console.log("SetScore called", score, max, min);
+          api.LMSSetValue("cmi.core.score.raw", score);
+
+          // If score is 100%, ensure status is completed
+          if (score === 100) {
+              api.LMSSetValue("cmi.core.lesson_status", "completed");
+              api.LMSCommit();
+          }
+          return "true";
+      };
+
+      window.WriteToDebug = function(msg) {
+          console.log("SCORM Debug:", msg);
+          return "true";
+      };
+    </script>
+  </head>
+  <body style="margin: 0; padding: 0; overflow: hidden">
+    <script>
+      // Create iframe
+      var iframe = document.createElement("iframe");
+      iframe.id = "scorm-frame";
+      iframe.style.width = "100%";
+      iframe.style.height = "100vh";
+      iframe.style.border = "none";
+
+      // Set source and append iframe
+      iframe.src =
+        "{{ url_for('static', filename='scorm_uploads/' + module.file_name + '/scormcontent/index.html') }}";
+      document.body.appendChild(iframe);
+    </script>
+  </body>
+</html>
