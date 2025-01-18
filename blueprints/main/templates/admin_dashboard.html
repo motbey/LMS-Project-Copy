@@ -278,16 +278,29 @@
         <div class="stat-description">Currently active users</div>
       </div>
 
-      <div class="stat-card">
+      <a
+        href="{{ url_for('main.messages') }}"
+        class="stat-card"
+        data-tooltip="Select to View Messages"
+        style="text-decoration: none; cursor: pointer; position: relative"
+      >
         <div class="stat-header">
-          <span class="stat-title">Qualifications</span>
-          <span class="stat-icon qualifications"
-            ><i class="fas fa-certificate"></i
-          ></span>
+          <span class="stat-title">Messages</span>
+          <span class="stat-icon qualifications">
+            <i class="fas fa-envelope"></i>
+          </span>
         </div>
-        <div class="stat-number">{{ total_qualifications }}</div>
-        <div class="stat-description">Active qualifications</div>
-      </div>
+        <div class="stat-number">{{ total_messages }}</div>
+        <div class="stat-details">
+          <span class="stat-detail active">
+            <i class="fas fa-circle"></i> {{ unread_messages }} Unread
+          </span>
+          <span class="stat-detail">
+            <i class="fas fa-circle"></i> {{ read_messages }} Read
+          </span>
+        </div>
+        <div class="stat-description">System Messages</div>
+      </a>
 
       <div class="stat-card">
         <div class="stat-header">

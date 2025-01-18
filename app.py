@@ -18,6 +18,10 @@ app = Flask(__name__,
 app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.join(basedir, 'instance', 'lms.db')}"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'your_secret_key_here')
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    'pool_pre_ping': True,
+    'pool_recycle': 300,
+}
 
 # Initialize Database
 db.init_app(app)
@@ -32,11 +36,16 @@ app.register_blueprint(auth_blueprint)
 @app.before_request
 def before_request():
     if 'user_id' in session:
-        user = User.query.get(session['user_id'])
-        if user:
-            user.last_seen = datetime.utcnow()
-            user.is_active = True
-            db.session.commit()
+        try:
+            user = User.query.get(session['user_id'])
+            if user:
+                user.last_seen = datetime.utcnow()
+                try:
+                    db.session.commit()
+                except Exception:
+                    db.session.rollback()
+        except Exception:
+            db.session.rollback()
 
 if __name__ == '__main__':
     app.run(debug=True)

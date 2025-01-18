@@ -15,7 +15,8 @@ from .models import (  # Import from local models.py using relative import
     Module,
     GroupModule,
     UserModule, 
-    UserQualification
+    UserQualification,
+    Message
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -207,6 +208,12 @@ def login():
 # Admin Dashboard Route
 @main.route('/admin', methods=['GET', 'POST'])
 def admin_dashboard():
+    if 'user_id' not in session:
+        flash('Please log in first.', 'danger')
+        return redirect(url_for('main.home'))
+        
+    user_id = session['user_id']
+    
     # Get current time
     now = datetime.utcnow()
     
@@ -226,9 +233,13 @@ def admin_dashboard():
     last_24h_users = User.query.filter(User.last_seen >= last_24h).count()
     last_7d_users = User.query.filter(User.last_seen >= last_7d).count()
     
-    # Get other statistics
-    total_qualifications = Qualification.query.count()
+    # Get total groups
     total_groups = UserGroup.query.count()
+    
+    # Get message counts for current user only
+    total_messages = Message.query.filter_by(recipient_id=user_id).count()
+    unread_messages = Message.query.filter_by(recipient_id=user_id, read=False).count()
+    read_messages = Message.query.filter_by(recipient_id=user_id, read=True).count()
     
     return render_template('admin_dashboard.html',
                          total_users=total_users,
@@ -237,7 +248,9 @@ def admin_dashboard():
                          active_sessions=active_sessions,
                          last_24h_users=last_24h_users,
                          last_7d_users=last_7d_users,
-                         total_qualifications=total_qualifications,
+                         total_messages=total_messages,
+                         unread_messages=unread_messages,
+                         read_messages=read_messages,
                          total_groups=total_groups)
 
 
@@ -1702,5 +1715,260 @@ def reports():
 @main.route('/system_settings')
 def system_settings():
     return render_template('system_settings.html')
+
+@main.route('/messages')
+def messages():
+    if 'user_id' not in session:
+        flash('Please log in first.', 'danger')
+        return redirect(url_for('main.home'))
+    
+    user_id = session['user_id']
+    
+    # Get messages for the current user, ordered by created_at in descending order (newest first)
+    messages = Message.query.filter_by(recipient_id=user_id).order_by(Message.created_at.desc()).all()
+    
+    # Get counts
+    total_messages = Message.query.filter_by(recipient_id=user_id).count()
+    unread_messages = Message.query.filter_by(recipient_id=user_id, read=False).count()
+    read_messages = Message.query.filter_by(recipient_id=user_id, read=True).count()
+    
+    # Get all active users except current user
+    all_users = User.query.filter(User.id != user_id).all()
+    
+    # Get all locations and companies
+    locations = Location.query.all()
+    companies = Company.query.all()
+    
+    # Get all job titles
+    job_titles = JobTitle.query.all()
+    
+    # Get current user for role check
+    current_user = User.query.get(user_id)
+    
+    return render_template('messages.html',
+        messages=messages,
+        total_messages=total_messages,
+        unread_messages=unread_messages,
+        read_messages=read_messages,
+        all_users=all_users,
+        locations=locations,
+        companies=companies,
+        job_titles=job_titles,
+        current_user=current_user
+    )
+
+@main.route('/reply_message', methods=['POST'])
+def reply_message():
+    if 'user_id' not in session:
+        flash('Please log in first.', 'danger')
+        return redirect(url_for('main.home'))
+    
+    recipient_id = request.form.get('recipient_id')
+    content = request.form.get('content')
+    title = request.form.get('title')
+    original_message_id = request.form.get('original_message_id')
+    
+    if not all([recipient_id, content, title]):
+        flash('Missing required fields', 'danger')
+        return redirect(url_for('main.messages'))
+    
+    new_message = Message(
+        sender_id=session['user_id'],
+        recipient_id=recipient_id,
+        title=title,
+        content=content,
+        original_message_id=original_message_id
+    )
+    
+    db.session.add(new_message)
+    db.session.commit()
+    
+    flash('Reply sent successfully!', 'success')
+    return redirect(url_for('main.messages'))
+
+@main.route('/mark_as_read/<int:message_id>', methods=['POST'])
+def mark_as_read(message_id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': 'Not logged in'}), 401
+    
+    message = Message.query.get_or_404(message_id)
+    if message.recipient_id != session['user_id']:
+        return jsonify({'success': False, 'message': 'Unauthorized'}), 403
+    
+    message.read = True
+    db.session.commit()
+    
+    return jsonify({'success': True})
+
+@main.route('/send_message', methods=['POST'])
+def send_message():
+    if 'user_id' not in session:
+        flash('Please log in first.', 'danger')
+        return redirect(url_for('main.messages'))
+    
+    try:
+        # Get form data
+        title = request.form.get('title')
+        content = request.form.get('content')
+        recipient_ids = request.form.get('recipientIds')
+        
+        if not title or not content or not recipient_ids:
+            flash('Please fill in all required fields.', 'danger')
+            return redirect(url_for('main.messages'))
+        
+        # Split recipient IDs and handle different types
+        recipients = recipient_ids.split(',')
+        sender_id = session['user_id']
+        messages_to_create = []
+        
+        for recipient in recipients:
+            recipient_type, recipient_id = recipient.split('_', 1)
+            
+            if recipient_type == 'user':
+                # Direct message to user
+                messages_to_create.append({
+                    'recipient_id': recipient_id,
+                    'title': title,
+                    'content': content
+                })
+            elif recipient_type == 'location':
+                # Send to all users in location
+                users = User.query.join(User.locations).filter(Location.id == recipient_id).all()
+                for user in users:
+                    messages_to_create.append({
+                        'recipient_id': user.id,
+                        'title': title,
+                        'content': content
+                    })
+            elif recipient_type == 'company':
+                # Send to all users in company
+                users = User.query.filter_by(company_id=recipient_id).all()
+                for user in users:
+                    messages_to_create.append({
+                        'recipient_id': user.id,
+                        'title': title,
+                        'content': content
+                    })
+            elif recipient_type == 'job':
+                # Send to all users with job title
+                users = User.query.filter_by(job_title_id=recipient_id).all()
+                for user in users:
+                    messages_to_create.append({
+                        'recipient_id': user.id,
+                        'title': title,
+                        'content': content
+                    })
+            elif recipient == 'all_active':
+                # Send to all active users except sender
+                users = User.query.filter(User.status == 'Active', User.id != sender_id).all()
+                for user in users:
+                    messages_to_create.append({
+                        'recipient_id': user.id,
+                        'title': title,
+                        'content': content
+                    })
+        
+        # Create all messages
+        for msg_data in messages_to_create:
+            message = Message(
+                sender_id=sender_id,
+                recipient_id=msg_data['recipient_id'],
+                title=msg_data['title'],
+                content=msg_data['content'],
+                read=False
+            )
+            db.session.add(message)
+        
+        db.session.commit()
+        flash('Message sent successfully!', 'success')
+        
+    except Exception as e:
+        db.session.rollback()
+        flash(f'Error sending message: {str(e)}', 'danger')
+        print(f"Error sending message: {str(e)}")  # For debugging
+    
+    return redirect(url_for('main.messages'))
+
+@main.route('/get_message/<int:message_id>')
+def get_message(message_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        message = Message.query.get_or_404(message_id)
+        
+        # Check if user is either sender or recipient
+        if message.recipient_id != session['user_id'] and message.sender_id != session['user_id']:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # Mark as read if user is recipient
+        if message.recipient_id == session['user_id'] and not message.read:
+            message.read = True
+            db.session.commit()
+        
+        # Get sender's name
+        sender = User.query.get(message.sender_id)
+        sender_name = f"{sender.first_name} {sender.last_name}" if sender else "Unknown"
+        
+        return jsonify({
+            'id': message.id,
+            'sender_id': message.sender_id,
+            'sender': sender_name,
+            'title': message.title,
+            'content': message.content,
+            'created_at': message.created_at.strftime('%Y-%m-%d %H:%M:%S'),
+            'read': message.read,
+            'original_message_id': message.original_message_id
+        })
+    
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@main.route('/delete_message/<int:message_id>', methods=['POST'])
+def delete_message(message_id):
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    try:
+        message = Message.query.get_or_404(message_id)
+        
+        # Check if user is the recipient of the message
+        if message.recipient_id != session['user_id']:
+            return jsonify({'error': 'Unauthorized'}), 403
+        
+        # First, handle any replies to this message
+        Message.query.filter_by(original_message_id=message_id).update({
+            'original_message_id': None
+        })
+        
+        # Now delete the message
+        db.session.delete(message)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Message deleted successfully'})
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e)}), 500
+
+@main.route('/get_message_counts')
+def get_message_counts():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Not authenticated'}), 401
+    
+    user_id = session['user_id']
+    
+    try:
+        total = Message.query.filter_by(recipient_id=user_id).count()
+        unread = Message.query.filter_by(recipient_id=user_id, read=False).count()
+        read = Message.query.filter_by(recipient_id=user_id, read=True).count()
+        
+        return jsonify({
+            'total': total,
+            'unread': unread,
+            'read': read
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 

@@ -233,3 +233,30 @@ class UserQualification(db.Model):
     # Add these relationships
     user = db.relationship('User', backref=db.backref('user_qualifications', lazy=True))
     qualification = db.relationship('Qualification', backref=db.backref('user_qualifications', lazy=True))
+
+# Add this to your models.py file
+class Message(db.Model):
+    __tablename__ = 'messages'
+    id = db.Column(db.Integer, primary_key=True)
+    sender_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    recipient_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    title = db.Column(db.String(200), nullable=False)
+    content = db.Column(db.Text, nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    read = db.Column(db.Boolean, default=False)
+    original_message_id = db.Column(db.Integer, db.ForeignKey('messages.id'), nullable=True)
+    
+    # Relationships
+    sender = db.relationship('User', foreign_keys=[sender_id], backref='sent_messages')
+    recipient = db.relationship('User', foreign_keys=[recipient_id], backref='received_messages')
+    # Fixed self-referential relationship
+    original_message = db.relationship(
+        'Message',
+        remote_side=[id],
+        backref=db.backref('replies', lazy='dynamic'),
+        primaryjoin="Message.original_message_id==Message.id",
+        uselist=False  # This makes it a one-to-many relationship
+    )
+
+    def __repr__(self):
+        return f"<Message {self.title}>"

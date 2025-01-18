@@ -1,0 +1,1367 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Messages - ConPass LMS</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.ckeditor.com/ckeditor5/40.1.0/classic/ckeditor.js"></script>
+    <style>
+      .messages-container {
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        margin-bottom: 80px;
+      }
+
+      .messages-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .message-stats {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        width: 100%;
+      }
+
+      .message-stat {
+        background: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+
+      .messages-list {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+      }
+
+      .message-item {
+        padding: 15px;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+      }
+
+      .message-item:last-child {
+        border-bottom: none;
+      }
+
+      .message-unread {
+        background-color: #f8f9fa;
+      }
+
+      .message-icon {
+        color: #030037;
+        font-size: 1.2em;
+      }
+
+      .message-content {
+        flex-grow: 1;
+      }
+
+      .message-title {
+        font-weight: bold;
+        margin-bottom: 5px;
+      }
+
+      .message-date {
+        color: #666;
+        font-size: 0.9em;
+      }
+
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 1;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.4);
+      }
+
+      .modal-content {
+        background-color: #fefefe;
+        margin: 5% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 90%;
+        max-width: 900px;
+        border-radius: 8px;
+        max-height: 80vh;
+        overflow-y: auto;
+      }
+
+      #composeModal .modal-content {
+        margin: 3% auto;
+      }
+
+      .modal-content::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .modal-content::-webkit-scrollbar-track {
+        background: #f1f1f1;
+        border-radius: 4px;
+      }
+
+      .modal-content::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+      }
+
+      .modal-content::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
+      .close {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+      }
+
+      .message-item {
+        cursor: pointer;
+      }
+
+      textarea {
+        width: 100%;
+        padding: 10px;
+        margin: 10px 0;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      .message-view-header {
+        border-bottom: 1px solid #eee;
+        padding-bottom: 15px;
+        margin-bottom: 15px;
+      }
+
+      .message-meta {
+        color: #666;
+        font-size: 0.9em;
+        margin-top: 5px;
+      }
+
+      .message-meta span {
+        margin-right: 15px;
+      }
+
+      .message-view-content {
+        padding: 15px 0;
+        white-space: pre-wrap;
+      }
+
+      .message-actions {
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+        margin-top: 15px;
+        text-align: right;
+      }
+
+      footer {
+        background-color: #030037;
+        color: white;
+        text-align: center;
+        padding: 15px 0;
+        position: fixed;
+        bottom: 0;
+        width: 100%;
+        left: 0;
+      }
+
+      body {
+        margin-bottom: 60px;
+        min-height: 100vh;
+        position: relative;
+      }
+
+      .btn-danger {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .btn-danger:hover {
+        background-color: #c82333;
+      }
+
+      .select2 {
+        width: 100%;
+        margin-bottom: 15px;
+      }
+
+      .form-group {
+        margin-bottom: 15px;
+      }
+
+      .form-control {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+      }
+
+      .form-actions {
+        text-align: right;
+        margin-top: 20px;
+      }
+
+      .btn-primary {
+        background-color: #030037;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .btn-primary:hover {
+        background-color: #020025;
+      }
+
+      .compose-button {
+        background: #030037 !important;
+        color: white !important;
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+      }
+
+      .compose-button:hover {
+        background: #020025 !important;
+      }
+
+      .recipient-selector {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+        margin-bottom: 15px;
+      }
+
+      .recipient-categories {
+        display: flex;
+        background: #f8f9fa;
+        border-bottom: 1px solid #ddd;
+        overflow-x: auto;
+        scrollbar-width: thin;
+        padding: 0 10px;
+      }
+
+      .recipient-categories::-webkit-scrollbar {
+        display: none;
+      }
+
+      .category-item {
+        background: none;
+        border: none;
+        padding: 12px 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #666;
+        transition: all 0.3s ease;
+      }
+
+      .category-item:hover {
+        background: #e9ecef;
+      }
+
+      .category-item.active {
+        background: #030037;
+        color: white;
+      }
+
+      .recipient-content {
+        padding: 20px;
+        max-height: 400px;
+        overflow-y: auto;
+      }
+
+      .category-content {
+        display: none;
+      }
+
+      .category-content.active {
+        display: block;
+      }
+
+      .search-box {
+        position: relative;
+        margin-bottom: 15px;
+      }
+
+      .search-box input {
+        width: 100%;
+        padding: 10px 15px 10px 35px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 14px;
+      }
+
+      .search-box i {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+      }
+
+      .recipient-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 15px;
+      }
+
+      .recipient-card {
+        cursor: pointer;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s ease;
+      }
+
+      .recipient-card:hover {
+        background-color: #f8f9fa;
+        border-color: #030037;
+      }
+
+      .user-info {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .user-name {
+        font-weight: 500;
+      }
+
+      .user-detail {
+        font-size: 12px;
+        color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      .selected-recipients {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 15px;
+        min-height: 40px;
+        padding: 10px;
+        border: 1px dashed #ddd;
+        border-radius: 8px;
+      }
+
+      .selected-recipient {
+        background: #030037;
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+      }
+
+      .selected-recipient i.fa-times {
+        cursor: pointer;
+        opacity: 0.8;
+      }
+
+      .selected-recipient i.fa-times:hover {
+        opacity: 1;
+      }
+
+      .remove-recipient {
+        cursor: pointer;
+        opacity: 0.8;
+        transition: opacity 0.3s ease;
+      }
+
+      .remove-recipient:hover {
+        opacity: 1;
+      }
+
+      .recipient-card.selected {
+        background-color: #e8f0fe;
+        border-color: #030037;
+      }
+
+      .recipient-card.selected::after {
+        content: "✓";
+        position: absolute;
+        right: 10px;
+        color: #030037;
+      }
+
+      #broadcast.category-content {
+        display: block;
+      }
+
+      .recipient-card {
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .recipient-card:hover {
+        background-color: #f8f9fa;
+        border-color: #030037;
+      }
+
+      .recipient-card.selected {
+        background-color: #e8f0fe;
+        border-color: #030037;
+      }
+
+      .recipient-card.selected::after {
+        content: "✓";
+        position: absolute;
+        right: 10px;
+        color: #030037;
+      }
+
+      .recipient-card {
+        cursor: pointer;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        position: relative;
+      }
+
+      .recipient-card.selected {
+        background-color: #e8f0fe;
+        border-color: #030037;
+      }
+
+      .selected-recipients {
+        margin: 15px 0;
+        padding: 10px;
+        border: 1px dashed #ddd;
+        border-radius: 8px;
+        min-height: 50px;
+      }
+
+      .selected-recipient {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: #030037;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 20px;
+        margin: 5px;
+      }
+
+      .selected-recipient .fa-times {
+        cursor: pointer;
+      }
+
+      .ck-editor__editable {
+        min-height: 200px;
+        max-height: 400px;
+      }
+
+      .ck-editor__editable_inline {
+        padding: 0 10px !important;
+      }
+
+      .ck.ck-editor {
+        margin-bottom: 20px;
+      }
+
+      .ck.ck-toolbar {
+        border-radius: 4px 4px 0 0 !important;
+      }
+
+      .ck.ck-editor__main > .ck-editor__editable {
+        border-radius: 0 0 4px 4px !important;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <nav class="dashboard-header">
+      <h2>Messages</h2>
+      <div class="header-buttons">
+        <a href="{{ url_for('main.admin_dashboard') }}" class="btn"
+          >Back to Dashboard</a
+        >
+      </div>
+    </nav>
+
+    <div class="messages-container">
+      <div class="messages-header">
+        <div class="message-stats">
+          <div class="message-stat">
+            <i class="fas fa-envelope"></i>
+            Total: {{ total_messages }}
+          </div>
+          <div class="message-stat">
+            <i class="fas fa-envelope-open"></i>
+            Unread: {{ unread_messages }}
+          </div>
+          <div class="message-stat">
+            <i class="fas fa-check"></i>
+            Read: {{ read_messages }}
+          </div>
+          <div class="message-stat compose-button" onclick="openComposeModal()">
+            <i class="fas fa-pen"></i>
+            Compose Message
+          </div>
+        </div>
+      </div>
+
+      <div class="messages-list">
+        {% if messages %} {% for message in messages %}
+        <div
+          class="message-item {% if not message.read %}message-unread{% endif %}"
+          onclick="viewMessage('{{ message.id }}', '{{ message.sender_id }}')"
+          data-message-id="{{ message.id }}"
+        >
+          <div class="message-icon">
+            <i class="fas fa-envelope{% if message.read %}-open{% endif %}"></i>
+          </div>
+          <div class="message-content">
+            <div class="message-title">{{ message.title }}</div>
+            <div class="message-text">{{ message.content | safe }}</div>
+            <div class="message-date">
+              {{ message.created_at.strftime('%Y-%m-%d %H:%M') }}
+            </div>
+          </div>
+        </div>
+        {% endfor %} {% else %}
+        <p>No messages to display.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Update the reply modal -->
+    <div id="replyModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeReplyModal()">&times;</span>
+        <h2>Reply to Message</h2>
+        <form
+          id="replyForm"
+          action="{{ url_for('main.reply_message') }}"
+          method="POST"
+        >
+          <input type="hidden" name="recipient_id" id="replyRecipientId" />
+          <input type="hidden" name="content" id="replyContent" />
+          <input type="hidden" name="title" id="replyTitle" />
+          <input
+            type="hidden"
+            name="original_message_id"
+            id="originalMessageId"
+          />
+
+          <div class="form-group">
+            <label for="replyEditor">Your Reply:</label>
+            <div id="replyEditor"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary">Send Reply</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Add this new modal for viewing messages -->
+    <div id="viewMessageModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeViewModal()">&times;</span>
+        <div class="message-view-header">
+          <h3 id="messageTitle"></h3>
+          <div class="message-meta">
+            <span>From: <span id="messageSender"></span></span>
+            <span>Date: <span id="messageDate"></span></span>
+          </div>
+        </div>
+        <div class="message-view-content">
+          <div id="messageContent"></div>
+        </div>
+        <div class="message-actions">
+          <button class="btn btn-primary" onclick="openReplyForm()">
+            Reply
+          </button>
+          <button
+            id="deleteButton"
+            class="btn btn-danger"
+            onclick="deleteMessage(currentMessageId)"
+            style="display: none; margin-left: 10px"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add this new modal for composing messages -->
+    <div id="composeModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeComposeModal()">&times;</span>
+        <h3>Compose New Message</h3>
+        <form
+          id="composeForm"
+          action="{{ url_for('main.send_message') }}"
+          method="POST"
+        >
+          <div class="form-group">
+            <label for="message_title">Title:</label>
+            <input
+              type="text"
+              id="message_title"
+              name="title"
+              class="form-control"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label>Recipients:</label>
+            <div class="recipient-selector">
+              <div class="recipient-categories">
+                <button
+                  type="button"
+                  class="category-item active"
+                  onclick="showCategory('broadcast')"
+                >
+                  <i class="fas fa-users"></i> Broadcast
+                </button>
+                <button
+                  type="button"
+                  class="category-item"
+                  onclick="showCategory('locations')"
+                >
+                  <i class="fas fa-map-marker-alt"></i> Locations
+                </button>
+                <button
+                  type="button"
+                  class="category-item"
+                  onclick="showCategory('companies')"
+                >
+                  <i class="fas fa-building"></i> Companies
+                </button>
+                <button
+                  type="button"
+                  class="category-item"
+                  onclick="showCategory('jobTitles')"
+                >
+                  <i class="fas fa-briefcase"></i> Job Titles
+                </button>
+                <button
+                  type="button"
+                  class="category-item"
+                  onclick="showCategory('users')"
+                >
+                  <i class="fas fa-user"></i> Users
+                </button>
+              </div>
+
+              <div class="recipient-content">
+                <!-- Broadcast Category -->
+                <div id="broadcast" class="recipient-category">
+                  <div
+                    class="recipient-card"
+                    onclick="selectRecipient(this)"
+                    data-recipient-id="all_active"
+                    data-recipient-name="All Active Users"
+                    data-recipient-type="broadcast"
+                  >
+                    <i class="fas fa-users"></i>
+                    <span>All Active Users</span>
+                  </div>
+                </div>
+
+                <!-- Locations Category -->
+                <div
+                  id="locations"
+                  class="recipient-category"
+                  style="display: none"
+                >
+                  <div class="search-box">
+                    <input
+                      type="text"
+                      placeholder="Search locations..."
+                      onkeyup="filterItems('locations')"
+                    />
+                  </div>
+                  <div class="recipient-list">
+                    {% for location in locations %}
+                    <div
+                      class="recipient-card"
+                      data-recipient-id="location_{{ location.id }}"
+                      data-recipient-name="{{ location.name }}"
+                      data-recipient-type="location"
+                      onclick="selectRecipient(this)"
+                    >
+                      <i class="fas fa-map-marker-alt"></i>
+                      <span>{{ location.name }}</span>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- Companies Category -->
+                <div
+                  id="companies"
+                  class="recipient-category"
+                  style="display: none"
+                >
+                  <div class="search-box">
+                    <input
+                      type="text"
+                      placeholder="Search companies..."
+                      onkeyup="filterItems('companies')"
+                    />
+                  </div>
+                  <div class="recipient-list">
+                    {% for company in companies %}
+                    <div
+                      class="recipient-card"
+                      data-recipient-id="company_{{ company.id }}"
+                      data-recipient-name="{{ company.name }}"
+                      data-recipient-type="company"
+                      onclick="selectRecipient(this)"
+                    >
+                      <i class="fas fa-building"></i>
+                      <span>{{ company.name }}</span>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- Job Titles Category -->
+                <div
+                  id="jobTitles"
+                  class="recipient-category"
+                  style="display: none"
+                >
+                  <div class="search-box">
+                    <input
+                      type="text"
+                      placeholder="Search job titles..."
+                      onkeyup="filterItems('jobTitles')"
+                    />
+                  </div>
+                  <div class="recipient-list">
+                    {% for job_title in job_titles %}
+                    <div
+                      class="recipient-card"
+                      data-recipient-id="job_{{ job_title.id }}"
+                      data-recipient-name="{{ job_title.name }}"
+                      data-recipient-type="job"
+                      onclick="selectRecipient(this)"
+                    >
+                      <i class="fas fa-briefcase"></i>
+                      <span>{{ job_title.name }}</span>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+
+                <!-- Users Category -->
+                <div
+                  id="users"
+                  class="recipient-category"
+                  style="display: none"
+                >
+                  <div class="search-box">
+                    <input
+                      type="text"
+                      placeholder="Search users..."
+                      onkeyup="filterItems('users')"
+                    />
+                  </div>
+                  <div class="recipient-list">
+                    {% for user in all_users %}
+                    <div
+                      class="recipient-card"
+                      data-recipient-id="user_{{ user.id }}"
+                      data-recipient-name="{{ user.first_name }} {{ user.last_name }}"
+                      data-recipient-type="user"
+                      onclick="selectRecipient(this)"
+                    >
+                      <i class="fas fa-user"></i>
+                      <span>{{ user.first_name }} {{ user.last_name }}</span>
+                    </div>
+                    {% endfor %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Selected Recipients Display -->
+            <div id="selectedRecipients" class="selected-recipients"></div>
+            <input type="hidden" id="recipientIds" name="recipientIds" />
+          </div>
+
+          <div class="form-group">
+            <label for="editor">Message:</label>
+            <div id="editor"></div>
+            <input type="hidden" name="content" id="message_content" />
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Send Message</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+      <div class="footer-content">© 2025 ConPass, All Rights Reserved.</div>
+    </footer>
+
+    <script>
+      let selectedRecipients = new Set();
+      let currentMessageId = null;
+      let currentSenderId = null;
+      let editor;
+      let replyEditor;
+
+      // Initialize when page loads
+      document.addEventListener("DOMContentLoaded", function () {
+        showCategory("broadcast");
+
+        // Initialize Select2 here, after DOM is loaded
+        $(".select2").select2({
+          placeholder: "Select recipients",
+          width: "100%",
+          searchable: true,
+          minimumInputLength: 0,
+          templateResult: formatOption,
+        });
+
+        ClassicEditor.create(document.querySelector("#editor"), {
+          toolbar: [
+            "heading",
+            "|",
+            "bold",
+            "italic",
+            "link",
+            "bulletedList",
+            "numberedList",
+            "|",
+            "outdent",
+            "indent",
+            "|",
+            "blockQuote",
+            "undo",
+            "redo",
+          ],
+        })
+          .then((newEditor) => {
+            editor = newEditor;
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+
+        // Initialize CKEditor for replies
+        ClassicEditor.create(document.querySelector("#replyEditor"))
+          .then((editor) => {
+            replyEditor = editor;
+          })
+          .catch((error) => {
+            console.error(error);
+          });
+      });
+
+      function selectRecipient(card) {
+        console.log("Selecting recipient:", card);
+
+        const id = card.dataset.recipientId;
+        const name = card.dataset.recipientName;
+        const type = card.dataset.recipientType;
+
+        console.log("Recipient data:", { id, name, type });
+
+        if (!selectedRecipients.has(id)) {
+          selectedRecipients.add(id);
+          card.classList.add("selected");
+
+          // Add to selected recipients display
+          const container = document.getElementById("selectedRecipients");
+          const tag = document.createElement("div");
+          tag.className = "selected-recipient";
+          tag.dataset.recipientId = id;
+          tag.innerHTML = `
+            <i class="fas fa-${getIcon(type)}"></i>
+            <span>${name}</span>
+            <i class="fas fa-times" onclick="removeRecipient('${id}')"></i>
+          `;
+          container.appendChild(tag);
+
+          // Update hidden input with selected recipients
+          updateRecipientIds();
+          console.log("Updated recipients:", Array.from(selectedRecipients));
+        }
+      }
+
+      const modal = document.getElementById("replyModal");
+      const span = document.getElementsByClassName("close")[0];
+
+      function openReplyModal(messageId, senderId, title) {
+        modal.style.display = "block";
+        document.getElementById("original_message_id").value = messageId;
+        document.getElementById("recipient_id").value = senderId;
+      }
+
+      span.onclick = function () {
+        modal.style.display = "none";
+      };
+
+      window.onclick = function (event) {
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      };
+
+      function viewMessage(messageId) {
+        currentMessageId = messageId;
+        fetch(`/get_message/${messageId}`)
+          .then((response) => response.json())
+          .then((data) => {
+            currentSenderId = data.sender_id;
+
+            document.getElementById("messageTitle").textContent = data.title;
+            document.getElementById("messageSender").textContent = data.sender;
+            document.getElementById("messageContent").innerHTML = data.content;
+            document.getElementById("messageDate").textContent =
+              data.created_at;
+
+            // Show delete button
+            const deleteButton = document.getElementById("deleteButton");
+            if (deleteButton) {
+              deleteButton.style.display = "inline-block";
+            }
+
+            // Show the modal
+            document.getElementById("viewMessageModal").style.display = "block";
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+            flash("Error loading message", "danger");
+          });
+      }
+
+      // Add close message modal function
+      function closeMessageModal() {
+        const modal = document.getElementById("viewMessageModal");
+        modal.style.display = "none";
+      }
+
+      // Add event listener for clicking outside modal to close it
+      window.onclick = function (event) {
+        const modal = document.getElementById("viewMessageModal");
+        if (event.target == modal) {
+          modal.style.display = "none";
+        }
+      };
+
+      // Helper function to update message counts
+      function updateMessageCounts(markingAsRead) {
+        if (markingAsRead) {
+          // Update unread count
+          const unreadStat = document.querySelector(
+            ".message-stat:nth-child(2)"
+          );
+          if (unreadStat) {
+            const currentUnread = parseInt(
+              unreadStat.textContent.split(": ")[1]
+            );
+            unreadStat.innerHTML = `<i class="fas fa-envelope-open"></i> Unread: ${
+              currentUnread - 1
+            }`;
+          }
+
+          // Update read count
+          const readStat = document.querySelector(".message-stat:nth-child(3)");
+          if (readStat) {
+            const currentRead = parseInt(readStat.textContent.split(": ")[1]);
+            readStat.innerHTML = `<i class="fas fa-check"></i> Read: ${
+              currentRead + 1
+            }`;
+          }
+        }
+      }
+
+      function openReplyForm() {
+        // Hide view modal and show reply modal
+        document.getElementById("viewMessageModal").style.display = "none";
+        document.getElementById("replyModal").style.display = "block";
+
+        // Set the hidden fields for the reply
+        document.getElementById("replyRecipientId").value = currentSenderId;
+        document.getElementById("originalMessageId").value = currentMessageId;
+
+        // Set default reply title
+        const originalTitle =
+          document.getElementById("messageTitle").textContent;
+        document.getElementById("replyTitle").value = `Re: ${originalTitle}`;
+      }
+
+      function closeViewModal() {
+        document.getElementById("viewMessageModal").style.display = "none";
+        // Reset the delete button display
+        const deleteButton = document.getElementById("deleteButton");
+        if (deleteButton) {
+          deleteButton.style.display = "none";
+        }
+      }
+
+      // Close modals when clicking outside
+      window.onclick = function (event) {
+        const viewModal = document.getElementById("viewMessageModal");
+        const replyModal = document.getElementById("replyModal");
+        if (event.target == viewModal) {
+          viewModal.style.display = "none";
+        } else if (event.target == replyModal) {
+          replyModal.style.display = "none";
+        }
+      };
+
+      function deleteMessage(messageId) {
+        if (!messageId) {
+          console.error("No message ID provided");
+          return;
+        }
+
+        if (confirm("Are you sure you want to delete this message?")) {
+          fetch(`/delete_message/${messageId}`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          })
+            .then((response) => {
+              if (!response.ok) {
+                throw new Error("Network response was not ok");
+              }
+              // Close the message view modal
+              document.getElementById("viewMessageModal").style.display =
+                "none";
+
+              // Remove the message from the list
+              const messageElement = document.querySelector(
+                `[data-message-id="${messageId}"]`
+              );
+              if (messageElement) {
+                messageElement.remove();
+              }
+
+              // Update the message counts in the UI
+              const totalStat = document.querySelector(
+                ".message-stat:nth-child(1)"
+              );
+              const unreadStat = document.querySelector(
+                ".message-stat:nth-child(2)"
+              );
+              const readStat = document.querySelector(
+                ".message-stat:nth-child(3)"
+              );
+
+              if (totalStat) {
+                const currentTotal = parseInt(
+                  totalStat.textContent.split(": ")[1]
+                );
+                totalStat.innerHTML = `<i class="fas fa-envelope"></i> Total: ${
+                  currentTotal - 1
+                }`;
+              }
+
+              // Show success message
+              flash("Message deleted successfully", "success");
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              flash("Error deleting message", "danger");
+            });
+        }
+      }
+
+      // Add this helper function for flash messages
+      function flash(message, type) {
+        const flashContainer = document.createElement("div");
+        flashContainer.className = `alert alert-${type}`;
+        flashContainer.textContent = message;
+
+        const messagesContainer = document.querySelector(".messages-container");
+        messagesContainer.insertBefore(
+          flashContainer,
+          messagesContainer.firstChild
+        );
+
+        // Remove the flash message after 3 seconds
+        setTimeout(() => {
+          flashContainer.remove();
+        }, 3000);
+      }
+
+      // Add this function to update message counts
+      function updateMessageCounts() {
+        fetch("/get_message_counts")
+          .then((response) => response.json())
+          .then((data) => {
+            document.getElementById("totalMessages").textContent = data.total;
+            document.getElementById("unreadMessages").textContent = data.unread;
+            document.getElementById("readMessages").textContent = data.read;
+          })
+          .catch((error) => console.error("Error updating counts:", error));
+      }
+
+      function formatOption(option) {
+        if (!option.id) {
+          return option.text;
+        }
+
+        // Add icons based on option type
+        let icon = "";
+        if (option.id === "all_active") {
+          icon = '<i class="fas fa-users"></i> ';
+        } else if (option.id.startsWith("location_")) {
+          icon = '<i class="fas fa-map-marker-alt"></i> ';
+        } else if (option.id.startsWith("company_")) {
+          icon = '<i class="fas fa-building"></i> ';
+        } else if (option.id.startsWith("job_")) {
+          icon = '<i class="fas fa-briefcase"></i> ';
+        } else if (option.id.startsWith("user_")) {
+          icon = '<i class="fas fa-user"></i> ';
+        }
+
+        return $("<span>" + icon + option.text + "</span>");
+      }
+
+      function openComposeModal() {
+        const modal = document.getElementById("composeModal");
+        if (modal) {
+          modal.style.display = "block";
+          // Clear any previous selections
+          selectedRecipients.clear();
+          document.getElementById("selectedRecipients").innerHTML = "";
+          document.getElementById("recipientIds").value = "";
+          document.getElementById("message_title").value = "";
+          if (editor) {
+            editor.setData("");
+          }
+        }
+      }
+
+      function closeComposeModal() {
+        const modal = document.getElementById("composeModal");
+        if (modal) {
+          modal.style.display = "none";
+        }
+      }
+
+      function showTab(tabId) {
+        // Hide all tabs
+        document.querySelectorAll(".tab-content").forEach((tab) => {
+          tab.classList.remove("active");
+        });
+        document.querySelectorAll(".tab-btn").forEach((btn) => {
+          btn.classList.remove("active");
+        });
+
+        // Show selected tab
+        document.getElementById(tabId).classList.add("active");
+        document
+          .querySelector(`[onclick="showTab('${tabId}')"]`)
+          .classList.add("active");
+      }
+
+      function showCategory(categoryId) {
+        // Hide all categories
+        document.querySelectorAll(".recipient-category").forEach((category) => {
+          category.style.display = "none";
+        });
+
+        // Show selected category
+        document.getElementById(categoryId).style.display = "block";
+
+        // Update active state of buttons
+        document.querySelectorAll(".category-item").forEach((button) => {
+          button.classList.remove("active");
+        });
+        document
+          .querySelector(`button[onclick*="${categoryId}"]`)
+          .classList.add("active");
+      }
+
+      function getIcon(type) {
+        switch (type) {
+          case "broadcast":
+            return "users";
+          case "location":
+            return "map-marker-alt";
+          case "company":
+            return "building";
+          case "role":
+            return "briefcase";
+          case "user":
+            return "user";
+          default:
+            return "circle";
+        }
+      }
+
+      function removeRecipient(id) {
+        selectedRecipients.delete(id);
+
+        // Remove selection highlight
+        const card = document.querySelector(
+          `.recipient-card[data-recipient-id="${id}"]`
+        );
+        if (card) {
+          card.classList.remove("selected");
+        }
+
+        // Remove from selected recipients display
+        const tag = document.querySelector(
+          `.selected-recipient[data-recipient-id="${id}"]`
+        );
+        if (tag) {
+          tag.remove();
+        }
+
+        // Update hidden input with selected recipients
+        updateRecipientIds();
+      }
+
+      function filterItems(categoryId) {
+        const searchInput = document
+          .querySelector(`#${categoryId} input`)
+          .value.toLowerCase();
+        document
+          .querySelectorAll(`#${categoryId} .recipient-card`)
+          .forEach((card) => {
+            const searchText = (
+              card.dataset.recipientName ||
+              card.querySelector("span").textContent
+            ).toLowerCase();
+            card.style.display = searchText.includes(searchInput)
+              ? "flex"
+              : "none";
+          });
+      }
+
+      function updateRecipientIds() {
+        document.getElementById("recipientIds").value =
+          Array.from(selectedRecipients).join(",");
+        console.log(
+          "Updated recipient IDs:",
+          document.getElementById("recipientIds").value
+        ); // Debug line
+      }
+
+      // Update the form submission handler
+      document
+        .getElementById("composeForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          if (selectedRecipients.size === 0) {
+            alert("Please select at least one recipient");
+            return false;
+          }
+
+          // Get content from CKEditor
+          const content = editor.getData();
+          if (!content) {
+            alert("Please enter a message");
+            return false;
+          }
+
+          // Get form data
+          const title = document.getElementById("message_title").value;
+          if (!title) {
+            alert("Please enter a title");
+            return false;
+          }
+
+          const recipientIds = Array.from(selectedRecipients).join(",");
+
+          // Set the hidden input values
+          document.getElementById("message_content").value = content;
+          document.getElementById("recipientIds").value = recipientIds;
+
+          // Submit the form
+          this.submit();
+        });
+
+      function replyToMessage() {
+        const originalTitle =
+          document.getElementById("messageTitle").textContent;
+        document.getElementById("replyTitle").value = `Re: ${originalTitle}`;
+        document.getElementById("replyRecipientId").value = currentSenderId;
+        document.getElementById("originalMessageId").value = currentMessageId;
+
+        // Clear previous content
+        if (replyEditor) {
+          replyEditor.setData("");
+        }
+
+        // Hide view modal and show reply modal
+        document.getElementById("viewMessageModal").style.display = "none";
+        document.getElementById("replyModal").style.display = "block";
+      }
+
+      function closeReplyModal() {
+        document.getElementById("replyModal").style.display = "none";
+      }
+
+      // Update reply form submission
+      document
+        .getElementById("replyForm")
+        .addEventListener("submit", function (event) {
+          event.preventDefault();
+
+          const content = replyEditor.getData();
+          if (!content) {
+            alert("Please enter a reply");
+            return false;
+          }
+
+          document.getElementById("replyContent").value = content;
+          this.submit();
+        });
+    </script>
+  </body>
+</html>
